@@ -5,13 +5,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        canvas: "#eef0f6",
+        mist: "#e5e9f2",
         brand: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
+          50: "#f5f7ff",
+          100: "#e9edff",
+          200: "#d6defa",
+          400: "#9fb0e6",
+          500: "#7c90d1",
+          600: "#6578b8",
+          700: "#4f5f9c",
+        },
+        aura: {
+          100: "#e9f4f4",
+          200: "#cfe7e6",
+          400: "#8bc2bd",
         },
       },
       boxShadow: {

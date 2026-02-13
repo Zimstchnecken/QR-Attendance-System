@@ -8,7 +8,7 @@ export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
   const [pin, setPin] = useState("1234");
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-50">
+    <SafeAreaView className="flex-1 bg-slate-100">
       <ScreenBackground />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-8">
         <View className="mb-8 mt-4">
@@ -17,7 +17,7 @@ export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
         </View>
 
         <GlassCard className="mb-6">
-          <Text className="mb-1 text-sm font-semibold uppercase tracking-widest text-brand-700">Student Login</Text>
+          <Text className="mb-1 text-sm font-semibold uppercase tracking-widest text-brand-600">Student Login</Text>
           <Text className="mb-4 text-2xl font-bold text-slate-900">Check-in access</Text>
 
           <Text className="mb-2 text-sm font-medium text-slate-700">Student ID</Text>
@@ -25,7 +25,7 @@ export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
             value={studentId}
             onChangeText={setStudentId}
             placeholder="ST-000"
-            className="mb-4 rounded-2xl border border-brand-100 bg-white px-4 py-3 text-base text-slate-900"
+            className="mb-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900"
           />
 
           <Text className="mb-2 text-sm font-medium text-slate-700">PIN</Text>
@@ -34,14 +34,14 @@ export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
             onChangeText={setPin}
             secureTextEntry
             placeholder="4-digit PIN"
-            className="mb-5 rounded-2xl border border-brand-100 bg-white px-4 py-3 text-base text-slate-900"
+            className="mb-5 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900"
           />
 
-          <TouchableOpacity onPress={onLogin} className="rounded-2xl bg-slate-900 px-4 py-4">
+          <TouchableOpacity onPress={onLogin} className="rounded-2xl bg-brand-600 px-4 py-4">
             <Text className="text-center text-base font-semibold text-white">Continue</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onSwitchToAdmin} className="mt-4">
-            <Text className="text-center text-sm font-semibold text-brand-700">Admin login</Text>
+            <Text className="text-center text-sm font-semibold text-brand-600">Admin login</Text>
           </TouchableOpacity>
         </GlassCard>
 
