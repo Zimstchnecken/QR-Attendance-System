@@ -1,6 +1,9 @@
 export const theme = {
-  gradient: ["#f8fafc", "#eef2ff", "#ecfeff"],
-  primary: "#0f766e",
-  accent: "#2563eb",
-  danger: "#b91c1c",
+  primary: "#4F6BED",
+  background: "#F9FAFB",
+  card: "#FFFFFF",
+  textPrimary: "#111827",
+  textSecondary: "#6B7280",
+  success: "#16A34A",
+  danger: "#DC2626",
 };

@@ -5,18 +5,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#f5f7ff",
-          100: "#e9edff",
-          200: "#d6defa",
-          400: "#9fb0e6",
-          500: "#7c90d1",
-          600: "#6578b8",
-          700: "#4f5f9c",
-        },
+        primary: "#4F6BED",
+        background: "#F9FAFB",
+        card: "#FFFFFF",
+        textPrimary: "#111827",
+        textSecondary: "#6B7280",
+        success: "#16A34A",
+        danger: "#DC2626",
+        border: "#E5E7EB",
+        surface: "#F3F4F6",
+      },
+      fontFamily: {
+        sans: ["Inter", "System"],
       },
       boxShadow: {
-        card: "0 8px 24px rgba(15, 23, 42, 0.15)",
+        card: "0 10px 24px rgba(17, 24, 39, 0.08)",
       },
     },
   },

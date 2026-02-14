@@ -1,119 +1,179 @@
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Ban,
+  FileDown,
+  LogOut,
+  Mail,
+  MailCheck,
+  Plus,
+  QrCode,
+  Send,
+  ShieldAlert,
+  UserX,
+  Users,
+} from "lucide-react-native";
 import { GlassCard, ScreenBackground } from "../components";
 import { logRows, sessionRows, studentRows } from "../data/admin";
 
 export default function AdminScreen({ onLogout }) {
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
+    <SafeAreaView className="flex-1 bg-background">
       <ScreenBackground />
       <ScrollView className="px-6 py-6" contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="mb-5 flex-row flex-wrap items-start justify-between gap-3">
+        <View className="mb-6 flex-row flex-wrap items-start justify-between gap-3">
           <View className="flex-1 pr-2">
-            <Text className="text-2xl font-extrabold text-slate-900">Teacher Dashboard</Text>
-            <Text className="text-slate-600">Manage sessions, students, and attendance export</Text>
+            <Text className="text-2xl font-bold text-textPrimary font-sans">Teacher Dashboard</Text>
+            <Text className="mt-2 text-sm text-textSecondary font-sans">Manage sessions, students, and attendance export</Text>
           </View>
-          <TouchableOpacity onPress={onLogout} className="self-start rounded-xl bg-slate-800 px-3 py-2">
-            <Text className="text-xs font-semibold text-white">Logout</Text>
+          <TouchableOpacity onPress={onLogout} activeOpacity={0.8} className="self-start rounded-2xl bg-danger px-4 py-3">
+            <View className="flex-row items-center gap-2">
+              <LogOut size={16} color="#FFFFFF" />
+              <Text className="text-xs font-semibold text-white font-sans">Logout</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
-        <View className="mb-5 flex-row gap-3">
-          <GlassCard className="flex-1 border border-slate-200 bg-white">
-            <View className="self-start rounded-full bg-slate-100 px-3 py-1">
-              <Text className="text-xs font-semibold uppercase tracking-widest text-slate-700">Active Sessions</Text>
+        <View className="mb-6 flex-row gap-3">
+          <GlassCard className="flex-1">
+            <View className="flex-row items-center gap-2">
+              <View className="h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
+                <QrCode size={16} color="#4F6BED" />
+              </View>
+              <Text className="text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">Active Sessions</Text>
             </View>
-            <Text className="mt-2 text-3xl font-extrabold text-slate-900">02</Text>
-            <Text className="text-xs text-slate-600">Live QR codes right now</Text>
+            <Text className="mt-3 text-3xl font-bold text-textPrimary font-sans">02</Text>
+            <Text className="text-xs text-textSecondary font-sans">Live QR codes right now</Text>
           </GlassCard>
-          <GlassCard className="flex-1 border border-slate-200 bg-white">
-            <View className="self-start rounded-full bg-slate-100 px-3 py-1">
-              <Text className="text-xs font-semibold uppercase tracking-widest text-slate-700">Emails Sent</Text>
+          <GlassCard className="flex-1">
+            <View className="flex-row items-center gap-2">
+              <View className="h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
+                <MailCheck size={16} color="#4F6BED" />
+              </View>
+              <Text className="text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">Emails Sent</Text>
             </View>
-            <Text className="mt-2 text-3xl font-extrabold text-slate-900">97</Text>
-            <Text className="text-xs text-slate-600">Parents notified today</Text>
+            <Text className="mt-3 text-3xl font-bold text-textPrimary font-sans">97</Text>
+            <Text className="text-xs text-textSecondary font-sans">Parents notified today</Text>
           </GlassCard>
         </View>
 
-        <GlassCard className="mb-5">
-          <Text className="mb-3 text-lg font-bold text-slate-900">Active QR Session</Text>
-          <View className="mb-4 rounded-3xl border border-brand-100 bg-white p-4">
-            <Text className="text-sm font-semibold uppercase tracking-widest text-brand-600">Grade 12 - STEM A</Text>
-            <Text className="mt-1 text-slate-600">Session ID: QR-1202</Text>
-            <View className="mt-4 h-40 items-center justify-center rounded-2xl border border-dashed border-brand-400 bg-brand-50">
-              <Text className="text-base font-semibold text-brand-600">QR Code Preview</Text>
-              <Text className="mt-1 text-xs text-slate-500">Placeholder for generated QR</Text>
+        <GlassCard className="mb-6">
+          <View className="mb-3 flex-row items-center gap-2">
+            <QrCode size={18} color="#4F6BED" />
+            <Text className="text-lg font-semibold text-textPrimary font-sans">Active QR Session</Text>
+          </View>
+          <View className="mb-4 rounded-2xl border border-border bg-card p-4">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">Grade 12 - STEM A</Text>
+            <Text className="mt-2 text-sm text-textSecondary font-sans">Session ID: QR-1202</Text>
+            <View className="mt-4 h-40 items-center justify-center rounded-2xl border border-dashed border-primary/40 bg-surface">
+              <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+                <QrCode size={26} color="#4F6BED" />
+              </View>
+              <Text className="mt-3 text-sm font-semibold text-textPrimary font-sans">QR Code Preview</Text>
+              <Text className="mt-2 text-xs text-textSecondary font-sans">Generated QR will appear here</Text>
             </View>
           </View>
           <View className="flex-row gap-3">
-            <TouchableOpacity className="flex-1 rounded-2xl bg-brand-600 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Generate New QR</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-primary px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <QrCode size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Generate New QR</Text>
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 rounded-2xl bg-rose-600 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Invalidate</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-danger px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <Ban size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Invalidate</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </GlassCard>
 
-        <GlassCard className="mb-5">
-          <Text className="mb-3 text-lg font-bold text-slate-900">Today Sessions</Text>
+        <GlassCard className="mb-6">
+          <Text className="mb-3 text-lg font-semibold text-textPrimary font-sans">Today Sessions</Text>
           {sessionRows.map((row) => (
-            <View key={row.id} className="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <Text className="font-semibold text-slate-900">{row.className}</Text>
-              <Text className="text-slate-600">Present: {row.present}/{row.total}</Text>
-              <Text className={`mt-1 text-xs font-semibold ${row.status === "Active" ? "text-emerald-700" : "text-slate-500"}`}>
+            <View key={row.id} className="mb-3 rounded-2xl border border-border bg-card p-4">
+              <Text className="text-sm font-semibold text-textPrimary font-sans">{row.className}</Text>
+              <Text className="mt-2 text-sm text-textSecondary font-sans">Present: {row.present}/{row.total}</Text>
+              <Text
+                className={`mt-2 text-xs font-semibold font-sans ${row.status === "Active" ? "text-success" : "text-textSecondary"}`}
+              >
                 {row.status}
               </Text>
             </View>
           ))}
         </GlassCard>
 
-        <GlassCard className="mb-5">
-          <Text className="mb-3 text-lg font-bold text-slate-900">Student Registry</Text>
+        <GlassCard className="mb-6">
+          <View className="mb-3 flex-row items-center gap-2">
+            <Users size={18} color="#4F6BED" />
+            <Text className="text-lg font-semibold text-textPrimary font-sans">Student Registry</Text>
+          </View>
           {studentRows.map((row) => (
-            <View key={row.id} className="mb-2 rounded-2xl border border-slate-200 bg-white p-3">
-              <Text className="font-semibold text-slate-900">{row.name}</Text>
-              <Text className="text-slate-600">Student ID: {row.id}</Text>
-              <Text className="text-slate-600">Parent Email: {row.parent}</Text>
+            <View key={row.id} className="mb-3 rounded-2xl border border-border bg-card p-4">
+              <Text className="text-sm font-semibold text-textPrimary font-sans">{row.name}</Text>
+              <Text className="mt-2 text-sm text-textSecondary font-sans">Student ID: {row.id}</Text>
+              <Text className="text-sm text-textSecondary font-sans">Parent Email: {row.parent}</Text>
             </View>
           ))}
-          <TouchableOpacity className="mt-3 rounded-2xl bg-brand-100 px-4 py-3">
-            <Text className="text-center font-semibold text-brand-600">Add Student / Parent Email</Text>
+          <TouchableOpacity activeOpacity={0.85} className="mt-3 rounded-2xl bg-primary px-4 py-4">
+            <View className="flex-row items-center justify-center gap-2">
+              <Plus size={16} color="#FFFFFF" />
+              <Text className="text-center font-semibold text-white font-sans">Add Student / Parent Email</Text>
+            </View>
           </TouchableOpacity>
         </GlassCard>
 
-        <GlassCard className="mb-5">
-          <Text className="mb-3 text-lg font-bold text-slate-900">Attendance Log (Local)</Text>
+        <GlassCard className="mb-6">
+          <Text className="mb-3 text-lg font-semibold text-textPrimary font-sans">Attendance Log (Local)</Text>
           {logRows.map((row) => (
-            <View key={row.id} className="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <Text className="font-semibold text-slate-900">{row.name}</Text>
-              <Text className="text-slate-600">{row.className}</Text>
-              <Text className="text-slate-600">{row.time}</Text>
+            <View key={row.id} className="mb-3 rounded-2xl border border-border bg-card p-4">
+              <Text className="text-sm font-semibold text-textPrimary font-sans">{row.name}</Text>
+              <Text className="mt-2 text-sm text-textSecondary font-sans">{row.className}</Text>
+              <Text className="text-sm text-textSecondary font-sans">{row.time}</Text>
             </View>
           ))}
           <View className="mt-3 flex-row gap-3">
-            <TouchableOpacity className="flex-1 rounded-2xl bg-slate-800 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Export CSV</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-primary px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <FileDown size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Export CSV</Text>
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 rounded-2xl bg-brand-600 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Email Summary</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-primary px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <Send size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Email Summary</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </GlassCard>
 
         <GlassCard>
-          <Text className="mb-3 text-lg font-bold text-slate-900">Email Automation</Text>
-          <Text className="text-slate-600">
-            Resend.com API integration placeholder for parental notifications.
+          <View className="mb-3 flex-row items-center gap-2">
+            <Mail size={18} color="#4F6BED" />
+            <Text className="text-lg font-semibold text-textPrimary font-sans">Email Automation</Text>
+          </View>
+          <Text className="text-sm text-textSecondary font-sans">
+            Resend.com API integration for parental notifications.
           </Text>
-          <TouchableOpacity className="mt-3 rounded-2xl bg-brand-600 px-4 py-3">
-            <Text className="text-center font-semibold text-white">Test Email Template</Text>
+          <TouchableOpacity activeOpacity={0.85} className="mt-4 rounded-2xl bg-primary px-4 py-4">
+            <View className="flex-row items-center justify-center gap-2">
+              <Mail size={16} color="#FFFFFF" />
+              <Text className="text-center font-semibold text-white font-sans">Test Email Template</Text>
+            </View>
           </TouchableOpacity>
           <View className="mt-3 flex-row gap-3">
-            <TouchableOpacity className="flex-1 rounded-2xl bg-rose-600 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Emergency Alert</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-danger px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <ShieldAlert size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Emergency Alert</Text>
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 rounded-2xl bg-slate-800 px-4 py-3">
-              <Text className="text-center font-semibold text-white">Teacher Absent</Text>
+            <TouchableOpacity activeOpacity={0.85} className="flex-1 rounded-2xl bg-primary px-4 py-4">
+              <View className="flex-row items-center justify-center gap-2">
+                <UserX size={16} color="#FFFFFF" />
+                <Text className="text-center font-semibold text-white font-sans">Teacher Absent</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </GlassCard>

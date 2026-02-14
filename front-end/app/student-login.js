@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { GraduationCap, Hash, KeyRound, LogIn, ShieldCheck } from "lucide-react-native";
 import { GlassCard, ScreenBackground } from "../components";
 import { studentLoginDefaults } from "../data/auth";
 
@@ -8,44 +9,65 @@ export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
   const [pin, setPin] = useState(studentLoginDefaults.pin);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
+    <SafeAreaView className="flex-1 bg-background">
       <ScreenBackground />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-8">
-        <View className="mb-8 mt-4">
-          <Text className="text-4xl font-extrabold text-slate-900">QR Attendance</Text>
-          <Text className="mt-2 text-base text-slate-600">Student access for fast check-ins</Text>
+        <View className="mb-8 mt-2">
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-2xl bg-primary/10">
+              <GraduationCap size={20} color="#4F6BED" />
+            </View>
+            <View>
+              <Text className="text-2xl font-bold text-textPrimary font-sans">QR Attendance</Text>
+              <Text className="mt-2 text-sm text-textSecondary font-sans">Student access for fast check-ins</Text>
+            </View>
+          </View>
         </View>
 
         <GlassCard className="mb-6">
-          <Text className="mb-1 text-sm font-semibold uppercase tracking-widest text-brand-600">Student Login</Text>
-          <Text className="mb-4 text-2xl font-bold text-slate-900">Check-in access</Text>
+          <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">Student Login</Text>
+          <Text className="mb-4 text-lg font-semibold text-textPrimary font-sans">Check-in access</Text>
 
-          <Text className="mb-2 text-sm font-medium text-slate-700">Student ID</Text>
+          <View className="mb-2 flex-row items-center gap-2">
+            <Hash size={16} color="#6B7280" />
+            <Text className="text-sm font-medium text-textSecondary font-sans">Student ID</Text>
+          </View>
           <TextInput
             value={studentId}
             onChangeText={setStudentId}
             placeholder="ST-000"
-            className="mb-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900"
+            placeholderTextColor="#9CA3AF"
+            className="mb-4 rounded-2xl border border-border bg-card px-4 py-3 text-base text-textPrimary font-sans"
           />
 
-          <Text className="mb-2 text-sm font-medium text-slate-700">PIN</Text>
+          <View className="mb-2 flex-row items-center gap-2">
+            <KeyRound size={16} color="#6B7280" />
+            <Text className="text-sm font-medium text-textSecondary font-sans">PIN</Text>
+          </View>
           <TextInput
             value={pin}
             onChangeText={setPin}
             secureTextEntry
             placeholder="4-digit PIN"
-            className="mb-5 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-base text-slate-900"
+            placeholderTextColor="#9CA3AF"
+            className="mb-5 rounded-2xl border border-border bg-card px-4 py-3 text-base text-textPrimary font-sans"
           />
 
-          <TouchableOpacity onPress={onLogin} className="rounded-2xl bg-brand-600 px-4 py-4">
-            <Text className="text-center text-base font-semibold text-white">Continue</Text>
+          <TouchableOpacity onPress={onLogin} activeOpacity={0.85} className="rounded-2xl bg-primary px-4 py-4">
+            <View className="flex-row items-center justify-center gap-2">
+              <LogIn size={18} color="#FFFFFF" />
+              <Text className="text-center text-base font-semibold text-white font-sans">Continue</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onSwitchToAdmin} className="mt-4">
-            <Text className="text-center text-sm font-semibold text-brand-600">Admin login</Text>
+          <TouchableOpacity onPress={onSwitchToAdmin} activeOpacity={0.7} className="mt-4">
+            <View className="flex-row items-center justify-center gap-2">
+              <ShieldCheck size={16} color="#4F6BED" />
+              <Text className="text-center text-sm font-semibold text-primary font-sans">Admin login</Text>
+            </View>
           </TouchableOpacity>
         </GlassCard>
 
-        <Text className="text-center text-xs text-slate-500">Frontend-only prototype. No backend connection.</Text>
+        <Text className="text-center text-xs text-textSecondary font-sans">Frontend-only prototype. No backend connection.</Text>
       </ScrollView>
     </SafeAreaView>
   );
