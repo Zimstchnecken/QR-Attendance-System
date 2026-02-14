@@ -50,12 +50,12 @@ Use this if:
 ---
 
 ## Folder Structure (Simplified)
-
 front-end/
 ├── app/
 ├── components/
 ├── constants/
 ├── assets/
+├── data/
 ├── package.json
 └── app.json
 
