@@ -1,7 +1,7 @@
 
 # QR Attendance Frontend (Expo)
 
-- SDK 51 ginamit ko, bale idownload niyo dito https://expo.dev/go?sdkVersion=51&platform=android&device=true
+- SDK 54
 
 ## Requirements
 - Node.js 
