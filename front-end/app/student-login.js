@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import GlassCard from "../components/GlassCard";
-import ScreenBackground from "../components/ScreenBackground";
+import { GlassCard, ScreenBackground } from "../components";
 
 export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
   const [studentId, setStudentId] = useState("ST-078");

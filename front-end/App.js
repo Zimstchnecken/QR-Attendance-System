@@ -2,10 +2,12 @@ import { useState } from "react";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import "./global.css";
-import AdminLoginScreen from "./app/login";
-import StudentLoginScreen from "./app/student-login";
-import StudentScreen from "./app/student";
-import AdminScreen from "./app/admin";
+import {
+  AdminLoginScreen,
+  StudentLoginScreen,
+  StudentScreen,
+  AdminScreen,
+} from "./app/index";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState("adminLogin");

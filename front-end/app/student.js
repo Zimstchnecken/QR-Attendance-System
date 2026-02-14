@@ -1,6 +1,5 @@
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import GlassCard from "../components/GlassCard";
-import ScreenBackground from "../components/ScreenBackground";
+import { GlassCard, ScreenBackground } from "../components";
 
 export default function StudentScreen({ onLogout }) {
   return (

@@ -1,6 +1,5 @@
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import GlassCard from "../components/GlassCard";
-import ScreenBackground from "../components/ScreenBackground";
+import { GlassCard, ScreenBackground } from "../components";
 
 const sessionRows = [
   { id: "S1", className: "Grade 10 - Newton", present: 37, total: 41, status: "Active" },
