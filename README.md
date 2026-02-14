@@ -13,18 +13,20 @@
 ---
 
 ## Install
+0. Go to:
+   - cd front-end
 
-1. Install dependencies:
+2. Install dependencies:
    - npm install
 
-2. Start the development server:
+3. Start the development server:
    - npx expo start
 
-3. After running `expo start`, may malaking QR code.
+4. After running `expo start`, may malaking QR code.
    - I-scan mo gamit ang Expo Go app.
    - Make sure same WiFi ang laptop at phone.
 
-4. To stop the server:
+5. To stop the server:
    - Ctrl + C
 
 ---
