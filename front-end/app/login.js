@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { GlassCard, ScreenBackground } from "../components";
+import { adminLoginDefaults } from "../data/auth";
 
 export default function AdminLoginScreen({ onLogin, onSwitchToStudent }) {
-  const [email, setEmail] = useState("teacher@school.edu");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState(adminLoginDefaults.email);
+  const [password, setPassword] = useState(adminLoginDefaults.password);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">

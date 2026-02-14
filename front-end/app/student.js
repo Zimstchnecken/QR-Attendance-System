@@ -1,5 +1,6 @@
 import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { GlassCard, ScreenBackground } from "../components";
+import { latestStatus, scanTips } from "../data/student";
 
 export default function StudentScreen({ onLogout }) {
   return (
@@ -29,15 +30,18 @@ export default function StudentScreen({ onLogout }) {
 
         <GlassCard className="mb-4">
           <Text className="mb-2 text-lg font-bold text-slate-900">Latest Status</Text>
-          <Text className="text-slate-700">Class: Grade 12 - STEM A</Text>
-          <Text className="text-slate-700">Time: 08:03 AM</Text>
-          <Text className="mt-2 font-semibold text-emerald-700">Attendance recorded. Parent email queued.</Text>
+          <Text className="text-slate-700">Class: {latestStatus.className}</Text>
+          <Text className="text-slate-700">Time: {latestStatus.time}</Text>
+          <Text className="mt-2 font-semibold text-emerald-700">{latestStatus.message}</Text>
         </GlassCard>
 
         <GlassCard>
           <Text className="mb-2 text-lg font-bold text-slate-900">Scan Tips</Text>
-          <Text className="text-slate-600">Hold your phone steady and align the QR inside the frame.</Text>
-          <Text className="mt-1 text-slate-600">If offline, your check-in will be saved locally.</Text>
+          {scanTips.map((tip, index) => (
+            <Text key={`${index}-${tip.slice(0, 12)}`} className={`text-slate-600 ${index > 0 ? "mt-1" : ""}`}>
+              {tip}
+            </Text>
+          ))}
         </GlassCard>
       </ScrollView>
     </SafeAreaView>

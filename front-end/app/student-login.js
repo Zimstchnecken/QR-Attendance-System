@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { GlassCard, ScreenBackground } from "../components";
+import { studentLoginDefaults } from "../data/auth";
 
 export default function StudentLoginScreen({ onLogin, onSwitchToAdmin }) {
-  const [studentId, setStudentId] = useState("ST-078");
-  const [pin, setPin] = useState("1234");
+  const [studentId, setStudentId] = useState(studentLoginDefaults.studentId);
+  const [pin, setPin] = useState(studentLoginDefaults.pin);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
