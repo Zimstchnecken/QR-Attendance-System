@@ -46,7 +46,6 @@ Use this if:
 - No backend or database connection yet
 - QR scanner is currently a **placeholder**
 - Email actions are **not implemented yet**
-- For academic/demo purposes only
 
 ---
 
