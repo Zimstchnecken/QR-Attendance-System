@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   SafeAreaView,
   ScrollView,
@@ -24,6 +23,7 @@ export default function AdminScreen({ onLogout }) {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentEmail, setNewStudentEmail] = useState("");
+  const [newStudentClass, setNewStudentClass] = useState("");
   const [showInvalidateConfirm, setShowInvalidateConfirm] = useState(false);
   const [showNewSessionForm, setShowNewSessionForm] = useState(false);
   const [newSessionName, setNewSessionName] = useState("");
@@ -41,6 +41,8 @@ export default function AdminScreen({ onLogout }) {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showRemoveAttendanceConfirm, setShowRemoveAttendanceConfirm] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
   const [emailTemplate, setEmailTemplate] = useState("Dear Parent,\n\nYour child {student} has checked in for {class} at {time}.\n\nBest regards,\nSchool Administration");
   const [emergencyTemplate, setEmergencyTemplate] = useState("EMERGENCY ALERT\n\nThis is an urgent notification regarding {student} in {class}.\n\nPlease contact the school immediately.\n\nSchool Administration");
   const [teacherAbsentTemplate, setTeacherAbsentTemplate] = useState("Teacher Absent Notification\n\nDear Parent,\n\nThe teacher for {class} is absent today. Class arrangements have been made.\n\nSchool Administration");
@@ -171,6 +173,36 @@ export default function AdminScreen({ onLogout }) {
     }
     setShowRemoveAttendanceConfirm(false);
     setStudentToRemove(null);
+  };
+
+  const handleSaveStudent = () => {
+    if (!newStudentName.trim()) {
+      setWarningMessage("Please enter the student's name.");
+      setShowWarning(true);
+      return;
+    }
+    if (!newStudentClass) {
+      setWarningMessage("Please assign the student to a class.");
+      setShowWarning(true);
+      return;
+    }
+    if (!newStudentEmail.trim()) {
+      setWarningMessage("Please enter the parent's email address.");
+      setShowWarning(true);
+      return;
+    }
+    
+    setSuccessMessage(`${newStudentName} added to student registry!`);
+    setShowSuccessMessage(true);
+    Animated.sequence([
+      Animated.timing(successAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(1700),
+      Animated.timing(successAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setShowSuccessMessage(false));
+    setNewStudentName("");
+    setNewStudentEmail("");
+    setNewStudentClass("");
+    setShowAddStudent(false);
   };
 
   const handleSaveEmailTemplate = () => {
@@ -561,14 +593,14 @@ export default function AdminScreen({ onLogout }) {
                 {sessionRows.map((cls) => (
                   <TouchableOpacity
                     key={cls.id}
-                    onPress={() => setNewStudentEmail(cls.className)}
+                    onPress={() => setNewStudentClass(cls.className)}
                     className={`rounded-xl px-3 py-2 border ${
-                      newStudentEmail === cls.className ? "bg-primary border-primary" : "bg-card border-border"
+                      newStudentClass === cls.className ? "bg-primary border-primary" : "bg-card border-border"
                     }`}
                   >
                     <Text
                       className={`text-xs font-semibold ${
-                        newStudentEmail === cls.className ? "text-white" : "text-textSecondary"
+                        newStudentClass === cls.className ? "text-white" : "text-textSecondary"
                       } font-sans`}
                     >
                       {cls.className}
@@ -586,7 +618,7 @@ export default function AdminScreen({ onLogout }) {
                 placeholderTextColor="#9CA3AF"
                 className="mb-3 rounded-2xl border border-border bg-background px-3 py-2 text-sm text-textPrimary font-sans"
               />
-              <TouchableOpacity activeOpacity={0.9} className="rounded-2xl bg-primary px-4 py-3">
+              <TouchableOpacity activeOpacity={0.9} onPress={handleSaveStudent} className="rounded-2xl bg-primary px-4 py-3">
                 <Text className="text-center text-base font-semibold text-white font-sans">Save Student</Text>
               </TouchableOpacity>
             </View>
@@ -1113,6 +1145,29 @@ export default function AdminScreen({ onLogout }) {
             </View>
             <TouchableOpacity activeOpacity={0.9} onPress={() => setShowListSummary(false)} className="rounded-2xl bg-primary px-4 py-3">
               <Text className="text-center text-base font-semibold text-white font-sans">Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {showWarning && (
+        <View className="absolute inset-0 bg-black/50 justify-center items-center px-6">
+          <View className="w-full rounded-2xl bg-card p-6">
+            <View className="mb-3 flex-row items-center gap-2">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <AlertTriangle size={20} color={theme.colors.primary} />
+              </View>
+              <Text className="text-lg font-bold text-textPrimary font-sans">Missing Information</Text>
+            </View>
+            <Text className="text-sm text-textSecondary font-sans mb-6">
+              {warningMessage}
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => setShowWarning(false)}
+              className="rounded-2xl bg-primary px-4 py-3"
+            >
+              <Text className="text-center text-base font-semibold text-white font-sans">OK</Text>
             </TouchableOpacity>
           </View>
         </View>
