@@ -1,7 +1,7 @@
 export const latestStatus = {
   className: "Grade 12 - STEM A",
   time: "08:03 AM",
-  message: "Attendance recorded. Parent email queued.",
+  message: "Check-in successful. Parent notifications sent.",
 };
 
 export const scanTips = [

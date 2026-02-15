@@ -1,6 +1,6 @@
 export const sessionRows = [
   { id: "S1", className: "Grade 10 - Newton", present: 37, total: 41, status: "Active" },
-  { id: "S2", className: "Grade 11 - Einstein", present: 32, total: 39, status: "Closed" },
+  { id: "S2", className: "Grade 11 - Einstein", present: 32, total: 39, status: "Inactive" },
   { id: "S3", className: "Grade 12 - STEM A", present: 28, total: 30, status: "Active" },
 ];
 

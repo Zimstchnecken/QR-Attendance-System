@@ -1,11 +1,23 @@
-import { View } from "react-native";
+import { Animated, StyleSheet } from "react-native";
+import { theme } from "../../constants/theme";
 
-export default function GlassCard({ children, className = "" }) {
+export default function GlassCard({ children, className = "", style }) {
   return (
-    <View
-      className={`rounded-2xl border border-border bg-card p-4 shadow-card ${className}`}
+    <Animated.View
+      className={`rounded-2xl border border-border bg-card p-4 ${className}`}
+      style={[styles.card, style]}
     >
       {children}
-    </View>
+    </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: theme.radius.card,
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.md,
+    borderColor: theme.colors.border,
+    ...theme.shadow.card,
+  },
+});
