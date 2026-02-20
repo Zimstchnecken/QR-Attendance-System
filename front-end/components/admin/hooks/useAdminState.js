@@ -27,12 +27,14 @@ export const useAdminState = () => {
   const [showInvalidateConfirm, setShowInvalidateConfirm] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [showTeacherAbsentConfirm, setShowTeacherAbsentConfirm] = useState(false);
+  const [showClassEndedConfirm, setShowClassEndedConfirm] = useState(false);
   const [showRemoveAttendanceConfirm, setShowRemoveAttendanceConfirm] = useState(false);
   const [showListSummary, setShowListSummary] = useState(false);
   const [showTemplateSelection, setShowTemplateSelection] = useState(false);
   const [showEmailTemplate, setShowEmailTemplate] = useState(false);
   const [showEmergencyTemplate, setShowEmergencyTemplate] = useState(false);
   const [showTeacherAbsentTemplate, setShowTeacherAbsentTemplate] = useState(false);
+  const [showClassEndedTemplate, setShowClassEndedTemplate] = useState(false);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
@@ -51,6 +53,9 @@ export const useAdminState = () => {
   );
   const [teacherAbsentTemplate, setTeacherAbsentTemplate] = useState(
     "Teacher Absent Notification\n\nDear Parent,\n\nThe teacher for {class} is absent today. Class arrangements have been made.\n\nSchool Administration"
+  );
+  const [classEndedTemplate, setClassEndedTemplate] = useState(
+    "Class Ended Notification\n\nDear Parent,\n\nYour child's class {class} has already ended. Thank you.\n\nSchool Administration"
   );
   
   // Animation refs
@@ -102,6 +107,8 @@ export const useAdminState = () => {
     setShowEmergencyConfirm,
     showTeacherAbsentConfirm,
     setShowTeacherAbsentConfirm,
+    showClassEndedConfirm,
+    setShowClassEndedConfirm,
     showRemoveAttendanceConfirm,
     setShowRemoveAttendanceConfirm,
     showListSummary,
@@ -114,6 +121,8 @@ export const useAdminState = () => {
     setShowEmergencyTemplate,
     showTeacherAbsentTemplate,
     setShowTeacherAbsentTemplate,
+    showClassEndedTemplate,
+    setShowClassEndedTemplate,
     showExportOptions,
     setShowExportOptions,
     showWarning,
@@ -136,6 +145,8 @@ export const useAdminState = () => {
     setEmergencyTemplate,
     teacherAbsentTemplate,
     setTeacherAbsentTemplate,
+    classEndedTemplate,
+    setClassEndedTemplate,
     
     // Animations
     successAnim,

@@ -4,6 +4,8 @@ import { ScreenBackground } from "../components";
 import { theme } from "../constants/theme";
 import { useAdminHandlers, useAdminState } from "../components/admin/hooks";
 import {
+  ClassEndedConfirmModal,
+  ClassEndedTemplateModal,
   EmergencyConfirmModal,
   EmailTemplateModal,
   ExportOptionsModal,
@@ -51,8 +53,10 @@ export default function AdminScreen({ onLogout }) {
     showEmailTemplate,
     showEmergencyTemplate,
     showTeacherAbsentTemplate,
+    showClassEndedTemplate,
     showEmergencyConfirm,
     showTeacherAbsentConfirm,
+    showClassEndedConfirm,
     showExportOptions,
     showRemoveAttendanceConfirm,
     studentToRemove,
@@ -61,6 +65,7 @@ export default function AdminScreen({ onLogout }) {
     emailTemplate,
     emergencyTemplate,
     teacherAbsentTemplate,
+    classEndedTemplate,
     successAnim,
     screenAnim,
     qrAnim,
@@ -78,18 +83,21 @@ export default function AdminScreen({ onLogout }) {
     setShowInvalidateConfirm,
     setShowEmergencyConfirm,
     setShowTeacherAbsentConfirm,
+    setShowClassEndedConfirm,
     setShowRemoveAttendanceConfirm,
     setStudentToRemove,
     setShowTemplateSelection,
     setShowEmailTemplate,
     setShowEmergencyTemplate,
     setShowTeacherAbsentTemplate,
+    setShowClassEndedTemplate,
     setShowExportOptions,
     setShowListSummary,
     setShowWarning,
     setEmailTemplate,
     setEmergencyTemplate,
     setTeacherAbsentTemplate,
+    setClassEndedTemplate,
   } = state;
 
   useEffect(() => {
@@ -238,6 +246,7 @@ export default function AdminScreen({ onLogout }) {
           setShowTemplateSelection={setShowTemplateSelection}
           handleEmergencyAlert={handlers.handleEmergencyAlert}
           handleTeacherAbsent={handlers.handleTeacherAbsent}
+          handleClassEnded={handlers.handleClassEnded}
         />
       </Animated.ScrollView>
 
@@ -268,6 +277,12 @@ export default function AdminScreen({ onLogout }) {
         onCancel={() => setShowTeacherAbsentConfirm(false)}
         onConfirm={handlers.handleConfirmTeacherAbsent}
       />
+      <ClassEndedConfirmModal
+        visible={showClassEndedConfirm}
+        sessionName={selectedSession.className}
+        onCancel={() => setShowClassEndedConfirm(false)}
+        onConfirm={handlers.handleConfirmClassEnded}
+      />
       <TemplateSelectionModal
         visible={showTemplateSelection}
         onClose={() => setShowTemplateSelection(false)}
@@ -282,6 +297,10 @@ export default function AdminScreen({ onLogout }) {
         onSelectTeacherAbsent={() => {
           setShowTemplateSelection(false);
           setShowTeacherAbsentTemplate(true);
+        }}
+        onSelectClassEnded={() => {
+          setShowTemplateSelection(false);
+          setShowClassEndedTemplate(true);
         }}
       />
       <EmailTemplateModal
@@ -304,6 +323,13 @@ export default function AdminScreen({ onLogout }) {
         onChange={setTeacherAbsentTemplate}
         onCancel={() => setShowTeacherAbsentTemplate(false)}
         onSave={handlers.handleSaveTeacherAbsentTemplate}
+      />
+      <ClassEndedTemplateModal
+        visible={showClassEndedTemplate}
+        value={classEndedTemplate}
+        onChange={setClassEndedTemplate}
+        onCancel={() => setShowClassEndedTemplate(false)}
+        onSave={handlers.handleSaveClassEndedTemplate}
       />
       <SuccessToast visible={showSuccessMessage} successAnim={successAnim} message={successMessage} />
       <ExportOptionsModal

@@ -31,8 +31,10 @@ export const useAdminHandlers = (state) => {
     setShowEmailTemplate,
     setShowEmergencyTemplate,
     setShowTeacherAbsentTemplate,
+    setShowClassEndedTemplate,
     setShowEmergencyConfirm,
     setShowTeacherAbsentConfirm,
+    setShowClassEndedConfirm,
     setShowExportOptions,
   } = state;
 
@@ -84,6 +86,7 @@ export const useAdminHandlers = (state) => {
         present: 0,
         total: 0,
         status: "Active",
+        isLastPeriod: false,
       });
       setSessionName(newSessionName);
     }
@@ -142,6 +145,11 @@ export const useAdminHandlers = (state) => {
     showSuccessWithAnimation("Teacher absent template saved successfully!");
   };
 
+  const handleSaveClassEndedTemplate = () => {
+    setShowClassEndedTemplate(false);
+    showSuccessWithAnimation("Class ended template saved successfully!");
+  };
+
   const handleEmergencyAlert = () => {
     setShowEmergencyConfirm(true);
   };
@@ -158,6 +166,15 @@ export const useAdminHandlers = (state) => {
   const handleConfirmTeacherAbsent = () => {
     setShowTeacherAbsentConfirm(false);
     showSuccessWithAnimation("Teacher absence notification sent to parents.");
+  };
+
+  const handleClassEnded = () => {
+    setShowClassEndedConfirm(true);
+  };
+
+  const handleConfirmClassEnded = () => {
+    setShowClassEndedConfirm(false);
+    showSuccessWithAnimation("Class ended notification sent to parents.");
   };
 
   const handleExport = (format) => {
@@ -191,10 +208,13 @@ export const useAdminHandlers = (state) => {
     handleSaveEmailTemplate,
     handleSaveEmergencyTemplate,
     handleSaveTeacherAbsentTemplate,
+    handleSaveClassEndedTemplate,
     handleEmergencyAlert,
     handleConfirmEmergency,
     handleTeacherAbsent,
     handleConfirmTeacherAbsent,
+    handleClassEnded,
+    handleConfirmClassEnded,
     handleExport,
   };
 };

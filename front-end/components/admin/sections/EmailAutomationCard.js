@@ -1,10 +1,17 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { AlertTriangle, Ban, Mail } from "lucide-react-native";
+import { AlertTriangle, Ban, CheckCircle, Mail } from "lucide-react-native";
 import { GlassCard } from "../../";
 import { theme } from "../../../constants/theme";
 
-export const EmailAutomationCard = ({ cardStyle, cardAnim, setShowTemplateSelection, handleEmergencyAlert, handleTeacherAbsent }) => (
+export const EmailAutomationCard = ({
+  cardStyle,
+  cardAnim,
+  setShowTemplateSelection,
+  handleEmergencyAlert,
+  handleTeacherAbsent,
+  handleClassEnded,
+}) => (
   <GlassCard style={cardStyle(cardAnim)}>
     <View className="mb-3 flex-row items-center gap-2">
       <Mail size={20} color={theme.colors.primary} />
@@ -45,5 +52,15 @@ export const EmailAutomationCard = ({ cardStyle, cardAnim, setShowTemplateSelect
         </View>
       </TouchableOpacity>
     </View>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      className="mt-3 rounded-2xl bg-primary px-4 py-4"
+      onPress={handleClassEnded}
+    >
+      <View className="flex-row items-center justify-center gap-2">
+        <CheckCircle size={18} color="#FFFFFF" />
+        <Text className="text-center text-base font-semibold text-white font-sans">Class Ended</Text>
+      </View>
+    </TouchableOpacity>
   </GlassCard>
 );
