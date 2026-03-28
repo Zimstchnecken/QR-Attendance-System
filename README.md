@@ -1,71 +1,33 @@
-# QR Attendance Frontend (Expo)
+# QR Code Attendance System (Mobile)
 
-- SDK 54
-- Built with Expo (React Native)
+This project is a mobile-based QR code attendance system built using Expo (React Native). It is designed to allow users to scan QR codes for attendance tracking.
+
+This project was developed as part of an academic requirement.
+
+---
+
+## Overview
+
+The application provides a simple interface for scanning QR codes and displaying attendance-related data.
+
+---
+
+## Tech Stack
+
+* React Native
+* Expo (SDK 54)
+* JavaScript
 
 ---
 
 ## Requirements
-- Node.js 
-- Expo Go app nasa playstore siya, pag crim ka baka pumunta kapa ng SM
-- Laptop and phone must be connected to the same WiFi
 
----
+* Node.js
+* Expo CLI / npx Expo
+* Expo Go (Android/iOS)
+* Laptop and mobile device connected to the same Wi-Fi network
 
-## Install
-0. Go to:
-   - cd front-end
 
-2. Install dependencies:
-   - npm install
 
-3. Start the development server:
-   - npx expo start
-
-4. After running `expo start`, may malaking QR code.
-   - I-scan mo gamit ang Expo Go app.
-   - Make sure same WiFi ang laptop at phone.
-
-5. To stop the server:
-   - Ctrl + C
-
----
-
-## Clear Cache (if may error or bug)
-
-- npx expo start -c
-
-Use this if:
-- May weird errors
-- Changes are not reflecting
-- Metro bundler acting strange
-
----
-
-## Project Scope
-
-- UI is **frontend-only**
-- No backend or database connection yet
-- QR scanner is currently a **placeholder**
-- Email actions are **not implemented yet**
-
----
-
-## Folder Structure (Simplified)
-front-end/
-├── app/
-├── components/
-├── constants/
-├── assets/
-├── data/
-├── package.json
-└── app.json
-
----
-
-## Notes
-
-- If Expo fails, try clearing cache first.
-- If QR won’t scan, check WiFi connection.
-- If dependencies break, delete `node_modules` then run `npm install` again.
-
+* add a **backend-ready version (Node + Mongo)**
+* or make this into a **capstone-level README** (with diagrams, API flow, etc.)
