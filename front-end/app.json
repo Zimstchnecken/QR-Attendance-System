@@ -1,15 +1,21 @@
 {
   "expo": {
-    "name": "QR Attendance Frontend",
-    "slug": "qr-attendance-frontend",
+    "name": "ZapRoll",
+    "slug": "zaproll",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "hidden": true,
+      "translucent": true,
+      "barStyle": "light-content",
+      "backgroundColor": "#00000000"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "android": {
-      "package": "com.school.qrattendancefrontend"
+      "package": "com.zaproll.mobile"
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Animated } from "react-native";
 
-export const useAdminHandlers = (state) => {
+export const useAdminHandlers = (state, liveQrActions = {}) => {
   const {
     successAnim,
     qrAnim,
@@ -37,6 +37,7 @@ export const useAdminHandlers = (state) => {
     setShowClassEndedConfirm,
     setShowExportOptions,
   } = state;
+  const { onGenerateLiveQr, onInvalidateLiveQr } = liveQrActions;
 
   const showSuccessWithAnimation = (message) => {
     setSuccessMessage(message);
@@ -53,7 +54,7 @@ export const useAdminHandlers = (state) => {
     setSessionName(session.className);
   };
 
-  const handleGenerateQr = () => {
+  const handleGenerateQr = ({ sessionId, sessionName }) => {
     setIsGenerating(true);
     setAllowRename(true);
     qrAnim.setValue(0);
@@ -63,6 +64,14 @@ export const useAdminHandlers = (state) => {
       useNativeDriver: true,
     }).start();
     setTimeout(() => setIsGenerating(false), 400);
+
+    if (onGenerateLiveQr) {
+      const generated = onGenerateLiveQr({ sessionId, sessionName });
+
+      if (generated?.version) {
+        showSuccessWithAnimation(`QR v${generated.version} generated for ${sessionName}.`);
+      }
+    }
   };
 
   const handleInvalidateQr = () => {
@@ -72,6 +81,11 @@ export const useAdminHandlers = (state) => {
   const handleConfirmInvalidate = () => {
     setShowInvalidateConfirm(false);
     setAllowRename(false);
+
+    if (onInvalidateLiveQr) {
+      onInvalidateLiveQr();
+    }
+
     showSuccessWithAnimation("QR session invalidated. No more check-ins allowed.");
   };
 
