@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Expo / React Native
+.expo/
+**/.expo/
+.expo-shared/
+**/.expo-shared/
+web-build/
+**/web-build/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+coverage/
+**/coverage/
+
+# Native build artifacts (if prebuild/native folders are used)
+**/android/.gradle/
+**/android/local.properties
+**/android/app/build/
+**/ios/build/
+**/ios/Pods/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Signing and certificate files
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+
+# Caches and temporary files
+.cache/
+**/.cache/
+.tmp/
+**/.tmp/
+tmp/
+**/tmp/
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local agent definitions
+.claude/agents/
+.claude/agents/**

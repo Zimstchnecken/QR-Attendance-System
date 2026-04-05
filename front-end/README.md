@@ -1,4 +1,4 @@
-# QR Attendance Frontend (Expo)
+# ZapRoll Frontend (Expo)
 
 - SDK 54
 - Built with Expo (React Native)
