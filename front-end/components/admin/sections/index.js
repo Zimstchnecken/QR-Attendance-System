@@ -1,4 +1,6 @@
 export { DashboardHeader } from './DashboardHeader';
+export { DashboardTabBar } from './DashboardTabBar';
+export { DashboardAnalyticsCard } from './DashboardAnalyticsCard';
 export { SummaryCards } from './SummaryCards';
 export { ActiveQrSessionCard } from './ActiveQrSessionCard';
 export { TodaySessionsCard } from './TodaySessionsCard';
