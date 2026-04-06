@@ -6,9 +6,17 @@ import { theme } from "../constants/theme";
 import { useAdminHandlers, useAdminState } from "../components/admin/hooks";
 import {
   InvalidateConfirmModal,
+  EmergencyConfirmModal,
+  ClassEndedConfirmModal,
+  EmailTemplateModal,
+  EmergencyTemplateModal,
   ListSummaryModal,
   RemoveAttendanceModal,
   SuccessToast,
+  TeacherAbsentConfirmModal,
+  TeacherAbsentTemplateModal,
+  TemplateSelectionModal,
+  ClassEndedTemplateModal,
   ExportOptionsModal,
   WarningModal,
 } from "../components/admin/modals";
@@ -18,6 +26,7 @@ import {
   AttendanceLogCard,
   DashboardHeader,
   DashboardTabBar,
+  EmailAutomationCard,
   StudentRegistryCard,
   SummaryCards,
   TodaySessionsCard,
@@ -91,11 +100,23 @@ export default function AdminScreen({
     successMessage,
     attendanceLog,
     showListSummary,
+    showTemplateSelection,
+    showEmailTemplate,
+    showEmergencyTemplate,
+    showTeacherAbsentTemplate,
+    showClassEndedTemplate,
+    showEmergencyConfirm,
+    showTeacherAbsentConfirm,
+    showClassEndedConfirm,
     showExportOptions,
     showRemoveAttendanceConfirm,
     studentToRemove,
     showWarning,
     warningMessage,
+    emailTemplate,
+    emergencyTemplate,
+    teacherAbsentTemplate,
+    classEndedTemplate,
     successAnim,
     screenAnim,
     qrAnim,
@@ -113,9 +134,21 @@ export default function AdminScreen({
     setShowInvalidateConfirm,
     setShowRemoveAttendanceConfirm,
     setStudentToRemove,
+    setShowTemplateSelection,
+    setShowEmailTemplate,
+    setShowEmergencyTemplate,
+    setShowTeacherAbsentTemplate,
+    setShowClassEndedTemplate,
+    setShowEmergencyConfirm,
+    setShowTeacherAbsentConfirm,
+    setShowClassEndedConfirm,
     setShowExportOptions,
     setShowListSummary,
     setShowWarning,
+    setEmailTemplate,
+    setEmergencyTemplate,
+    setTeacherAbsentTemplate,
+    setClassEndedTemplate,
   } = state;
 
   useEffect(() => {
@@ -295,16 +328,26 @@ export default function AdminScreen({
     }
 
     return (
-      <AttendanceLogCard
-        cardStyle={cardStyle}
-        cardAnim={cardAnims[6]}
-        attendanceLog={mergedAttendanceLog}
-        logItemAnims={logItemAnims}
-        handleRemoveAttendance={handlers.handleRemoveAttendance}
-        setShowExportOptions={setShowExportOptions}
-        setShowListSummary={setShowListSummary}
-        listItemStyle={styles.listItem}
-      />
+      <>
+        <AttendanceLogCard
+          cardStyle={cardStyle}
+          cardAnim={cardAnims[6]}
+          attendanceLog={mergedAttendanceLog}
+          logItemAnims={logItemAnims}
+          handleRemoveAttendance={handlers.handleRemoveAttendance}
+          setShowExportOptions={setShowExportOptions}
+          setShowListSummary={setShowListSummary}
+          listItemStyle={styles.listItem}
+        />
+        <EmailAutomationCard
+          cardStyle={cardStyle}
+          cardAnim={cardAnims[6]}
+          setShowTemplateSelection={setShowTemplateSelection}
+          handleEmergencyAlert={handlers.handleEmergencyAlert}
+          handleTeacherAbsent={handlers.handleTeacherAbsent}
+          handleClassEnded={handlers.handleClassEnded}
+        />
+      </>
     );
   };
 
@@ -347,6 +390,80 @@ export default function AdminScreen({
           setStudentToRemove(null);
         }}
         onConfirm={handlers.handleConfirmRemoveAttendance}
+      />
+
+      <EmergencyConfirmModal
+        visible={showEmergencyConfirm}
+        sessionName={selectedSession.className}
+        onCancel={() => setShowEmergencyConfirm(false)}
+        onConfirm={handlers.handleConfirmEmergency}
+      />
+
+      <TeacherAbsentConfirmModal
+        visible={showTeacherAbsentConfirm}
+        sessionName={selectedSession.className}
+        onCancel={() => setShowTeacherAbsentConfirm(false)}
+        onConfirm={handlers.handleConfirmTeacherAbsent}
+      />
+
+      <ClassEndedConfirmModal
+        visible={showClassEndedConfirm}
+        sessionName={selectedSession.className}
+        onCancel={() => setShowClassEndedConfirm(false)}
+        onConfirm={handlers.handleConfirmClassEnded}
+      />
+
+      <TemplateSelectionModal
+        visible={showTemplateSelection}
+        onClose={() => setShowTemplateSelection(false)}
+        onSelectEmail={() => {
+          setShowTemplateSelection(false);
+          setShowEmailTemplate(true);
+        }}
+        onSelectEmergency={() => {
+          setShowTemplateSelection(false);
+          setShowEmergencyTemplate(true);
+        }}
+        onSelectTeacherAbsent={() => {
+          setShowTemplateSelection(false);
+          setShowTeacherAbsentTemplate(true);
+        }}
+        onSelectClassEnded={() => {
+          setShowTemplateSelection(false);
+          setShowClassEndedTemplate(true);
+        }}
+      />
+
+      <EmailTemplateModal
+        visible={showEmailTemplate}
+        value={emailTemplate}
+        onChange={setEmailTemplate}
+        onCancel={() => setShowEmailTemplate(false)}
+        onSave={handlers.handleSaveEmailTemplate}
+      />
+
+      <EmergencyTemplateModal
+        visible={showEmergencyTemplate}
+        value={emergencyTemplate}
+        onChange={setEmergencyTemplate}
+        onCancel={() => setShowEmergencyTemplate(false)}
+        onSave={handlers.handleSaveEmergencyTemplate}
+      />
+
+      <TeacherAbsentTemplateModal
+        visible={showTeacherAbsentTemplate}
+        value={teacherAbsentTemplate}
+        onChange={setTeacherAbsentTemplate}
+        onCancel={() => setShowTeacherAbsentTemplate(false)}
+        onSave={handlers.handleSaveTeacherAbsentTemplate}
+      />
+
+      <ClassEndedTemplateModal
+        visible={showClassEndedTemplate}
+        value={classEndedTemplate}
+        onChange={setClassEndedTemplate}
+        onCancel={() => setShowClassEndedTemplate(false)}
+        onSave={handlers.handleSaveClassEndedTemplate}
       />
 
       <SuccessToast visible={showSuccessMessage} successAnim={successAnim} message={successMessage} />
