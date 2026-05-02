@@ -4,9 +4,11 @@ import { CheckCircle, QrCode } from "lucide-react-native";
 import { GlassCard } from "../../";
 import { theme } from "../../../constants/theme";
 
-export const SummaryCards = ({ cardStyle, cardAnims }) => {
+export const SummaryCards = ({ cardStyle, cardAnims, sessions, attendanceLog }) => {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const activeCount = (sessions || []).filter((s) => s.status === "Active").length;
+  const checkedInCount = (attendanceLog || []).length;
 
   return (
     <View className="mb-6 flex-row gap-3" style={isCompact ? styles.stackCards : null}>
@@ -25,7 +27,7 @@ export const SummaryCards = ({ cardStyle, cardAnims }) => {
           </Text>
         </View>
         <Text className="mt-3 text-4xl font-bold text-textPrimary font-sans" style={isCompact ? styles.compactStat : null}>
-          02
+          {String(activeCount).padStart(2, "0")}
         </Text>
         <Text className="text-sm text-textSecondary font-sans">Live QR sessions right now</Text>
         <View className="mt-3 self-start rounded-full bg-primary/10 px-3 py-1">
@@ -47,11 +49,11 @@ export const SummaryCards = ({ cardStyle, cardAnims }) => {
           </Text>
         </View>
         <Text className="mt-3 text-4xl font-bold text-textPrimary font-sans" style={isCompact ? styles.compactStat : null}>
-          97
+          {String(checkedInCount).padStart(2, "0")}
         </Text>
-        <Text className="text-sm text-textSecondary font-sans">Parents notified</Text>
+        <Text className="text-sm text-textSecondary font-sans">Students checked in</Text>
         <View className="mt-3 self-start rounded-full bg-success/10 px-3 py-1">
-          <Text className="text-xs font-semibold text-success font-sans">Message delivery rate healthy</Text>
+          <Text className="text-xs font-semibold text-success font-sans">Across all active sessions</Text>
         </View>
       </GlassCard>
     </View>

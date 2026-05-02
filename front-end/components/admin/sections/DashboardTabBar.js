@@ -4,7 +4,7 @@ import { theme } from "../../../constants/theme";
 
 export const DashboardTabBar = ({ tabs, activeTab, onChange }) => (
   <View className="border-t border-border bg-card px-2 pb-2 pt-2" style={styles.container}>
-    {tabs.map(({ key, label, icon: Icon }) => {
+    {(tabs || []).map(({ key, label, icon: Icon }) => {
       const isActive = activeTab === key;
 
       return (

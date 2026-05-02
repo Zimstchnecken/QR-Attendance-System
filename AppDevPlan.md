@@ -1,4 +1,4 @@
-﻿# School QR Attendance Monitor - Product and Technical Specification (PRD)
+﻿ # School QR Attendance Monitor - Product and Technical Specification (PRD)
 
 ## 1. System Design (Target Architecture)
 
@@ -213,3 +213,104 @@ Each page must define:
 4. Replay and duplicate attempts are blocked and logged.
 5. Audit logs exist for sensitive actions.
 6. Basic parent notification for late/absence is functional.
+
+## 8. Backend Build Plan
+
+### 8.1 Recommended Stack
+- Node.js + TypeScript
+- Express or Fastify for the API layer
+- PostgreSQL as the system of record
+- Prisma or Drizzle for schema and migrations
+- Redis for short-lived QR session state, rate limiting, and queue support
+- JWT access tokens plus refresh tokens
+- Zod for request validation
+
+### 8.2 Project Structure
+- `apps/api` for the backend service
+- `packages/shared` for shared types, enums, and validation schemas
+- `packages/db` for database client and migrations
+- `packages/config` for env and runtime configuration
+- `apps/worker` for background jobs such as notifications and exports
+
+### 8.3 Build Order
+1. Initialize the backend workspace, env loading, logging, and health check.
+2. Create the PostgreSQL schema and first migration from the PRD tables.
+3. Implement auth with login, refresh, logout, and `GET /me`.
+4. Add school, term, roster, section, and enrollment endpoints.
+5. Build class session lifecycle endpoints.
+6. Add QR session generation, rotation, validation, and anti-replay rules.
+7. Add attendance scan and manual attendance endpoints.
+8. Add corrections, alerts, reports, and export jobs.
+9. Add audit logging and rate limiting.
+10. Wire the frontend to the API and replace mock data.
+
+### 8.4 Backend Milestones
+- Milestone 1: Backend scaffold, database connection, and auth foundation.
+- Milestone 2: Roster and session APIs working end to end.
+- Milestone 3: QR scan flow with replay protection.
+- Milestone 4: Attendance records, corrections, and audit logs.
+- Milestone 5: Reports, notifications, and export jobs.
+- Milestone 6: Frontend integration and deployment readiness.
+
+### 8.5 First Endpoints To Ship
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/me`
+- `GET /api/v1/health`
+- `GET /api/v1/schools/current`
+- `GET /api/v1/terms/active`
+
+### 8.6 Immediate Implementation Notes
+- Keep QR payloads short-lived and versioned.
+- Store used QR nonces to prevent replay.
+- Treat attendance writes as idempotent per student per class session.
+- Require server-side authorization on every protected endpoint.
+- Start with a modular monolith so the system stays simple while the app is still small.
+
+## 9. Locked Backend Decisions (April 27, 2026)
+
+### 9.1 Stack
+- Node.js + TypeScript
+- Express or Fastify (implementation can start with Express for faster team familiarity)
+- PostgreSQL
+- Redis
+- JWT access and refresh tokens
+- Resend for email delivery
+
+### 9.2 Product Scope
+- One school deployment (single-tenant)
+- High school context
+- Mock seed data for initial development
+- Branding stays as ZapRoll
+
+### 9.3 Roles and Access
+- Admin: managed in database and full management permissions
+- Teacher: teacher-facing view and class/session operations
+- Student: student-facing view and attendance actions
+- Parent: notification recipient only (no interactive portal in MVP)
+
+### 9.4 Authentication and Password Rules
+- Admin provides credentials for teachers and students
+- Password reset available through email (Gmail inbox via Resend delivery)
+- Parent account login not required in MVP
+
+### 9.5 Attendance and QR Rules
+- QR validity window is 24 hours
+- Student can scan multiple times, but only first valid attendance is counted
+- Duplicate scans are accepted as attempts but marked non-counting
+- Late scan logic is not required for this school process
+- If a student is offline, they may use a classmate device to sign in and scan
+
+### 9.6 MVP Priority
+- Must-have first: auth, roster, class sessions, QR flow, attendance recording, and email notifications
+- Later phases: advanced reports, correction workflow expansion, and deeper integrations
+
+### 9.7 Recommended Cloud Choice
+- Platform recommendation: Railway
+- Why: fastest path for student/capstone deployment with managed Node service, PostgreSQL, Redis, environment variables, and simple CI hookup
+- Supporting services: Resend for transactional email, optional Cloudflare for custom domain and TLS management
+
+### 9.8 UX Direction
+- Current mobile UI can be iterated during integration
+- Backend work is not blocked by UI refresh; API-first delivery remains priority

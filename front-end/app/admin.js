@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Animated, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, Animated, SafeAreaView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { ClipboardList, FileText, House, QrCode, Users } from "lucide-react-native";
 import { ScreenBackground } from "../components";
 import { theme } from "../constants/theme";
 import { useAdminHandlers, useAdminState } from "../components/admin/hooks";
+import { fetchAttendanceRecords } from "../utils/api";
 import {
   InvalidateConfirmModal,
   EmergencyConfirmModal,
@@ -19,6 +20,7 @@ import {
   ClassEndedTemplateModal,
   ExportOptionsModal,
   WarningModal,
+  AddStudentModal,
 } from "../components/admin/modals";
 import {
   ActiveQrSessionCard,
@@ -74,17 +76,22 @@ export default function AdminScreen({
   onGenerateQrSession,
   onInvalidateQrSession,
   onLogout,
+  session,
 }) {
-  const state = useAdminState();
+  const state = useAdminState(session?.accessToken);
   const handlers = useAdminHandlers(state, {
     onGenerateLiveQr: onGenerateQrSession,
     onInvalidateLiveQr: onInvalidateQrSession,
-  });
+  }, session?.accessToken, session?.user?.name ?? "Admin");
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
   const [activeTab, setActiveTab] = useState("home");
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [selectedSectionForEnrollment, setSelectedSectionForEnrollment] = useState(null);
 
   const {
+    isLoading,
+    loadError,
     isGenerating,
     allowRename,
     selectedSession,
@@ -239,7 +246,36 @@ export default function AdminScreen({
     [isCompact]
   );
 
-  const activeTabMeta = TAB_META[activeTab];
+  // Fetch attendance records whenever the selected session changes
+  useEffect(() => {
+    if (!selectedSession?.id || !session?.accessToken) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const records = await fetchAttendanceRecords(selectedSession.id, session.accessToken);
+        if (cancelled) return;
+
+        const mapped = (records || []).map((r) => ({
+          id: r.recordId ?? `${r.studentId}-${r.recordedAt}`,
+          name: r.studentId, // will be enriched by studentList lookup if needed
+          className: selectedSession.className,
+          time: new Date(r.recordedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }),
+          status: r.status,
+        }));
+
+        state.setAttendanceLog(mapped);
+      } catch {
+        // Non-fatal — keep existing log
+      }
+    })();
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSession?.id, session?.accessToken]);
+
+  // These must be declared before any early returns to satisfy Rules of Hooks
   const liveScanRows = useMemo(
     () =>
       (scanEvents || []).map((event) => ({
@@ -255,11 +291,39 @@ export default function AdminScreen({
     [attendanceLog, liveScanRows]
   );
 
+  const activeTabMeta = TAB_META[activeTab];
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" style={styles.centered}>
+        <ScreenBackground />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text className="mt-4 text-sm text-textSecondary font-sans">Loading dashboard…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" style={styles.centered}>
+        <ScreenBackground />
+        <Text className="text-base font-semibold text-danger font-sans">Failed to load data</Text>
+        <Text className="mt-2 text-sm text-textSecondary font-sans">{loadError}</Text>
+        <TouchableOpacity
+          onPress={state.reload}
+          className="mt-6 rounded-2xl bg-primary px-6 py-3"
+        >
+          <Text className="text-sm font-semibold text-white font-sans">Retry</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   const renderTabContent = () => {
     if (activeTab === "home") {
       return (
         <>
-          <SummaryCards cardStyle={cardStyle} cardAnims={cardAnims} />
+          <SummaryCards cardStyle={cardStyle} cardAnims={cardAnims} sessions={state.sessions} attendanceLog={mergedAttendanceLog} />
           <DashboardAnalyticsCard
             cardStyle={cardStyle}
             cardAnim={cardAnims[2]}
@@ -275,6 +339,7 @@ export default function AdminScreen({
         <TodaySessionsCard
           cardStyle={cardStyle}
           cardAnim={cardAnims[3]}
+          sessions={state.sessions}
           sessionItemAnims={sessionItemAnims}
           listItemStyle={styles.listItem}
         />
@@ -286,6 +351,8 @@ export default function AdminScreen({
         <ActiveQrSessionCard
           cardStyle={cardStyle}
           cardAnim={cardAnims[4]}
+          sessions={state.sessions}
+          sectionList={state.sectionList}
           selectedSession={selectedSession}
           handleSelectSession={handlers.handleSelectSession}
           showNewSessionForm={showNewSessionForm}
@@ -312,6 +379,8 @@ export default function AdminScreen({
           cardStyle={cardStyle}
           cardAnim={cardAnims[5]}
           studentItemAnims={studentItemAnims}
+          studentList={state.studentList}
+          sectionList={state.sectionList}
           selectedSession={selectedSession}
           showAddStudent={showAddStudent}
           setShowAddStudent={setShowAddStudent}
@@ -322,6 +391,17 @@ export default function AdminScreen({
           newStudentEmail={newStudentEmail}
           setNewStudentEmail={setNewStudentEmail}
           handleSaveStudent={handlers.handleSaveStudent}
+          onUpdateParentEmail={handlers.handleUpdateParentEmail}
+          onOpenAddStudentModal={() => {
+            // Pick the first section by default; the modal has a section selector
+            const firstSection = state.sectionList?.[0];
+            setShowAddStudentModal(true);
+            setSelectedSectionForEnrollment(
+              firstSection
+                ? { id: firstSection.id, name: firstSection.name }
+                : { id: '', name: 'Current Section' }
+            );
+          }}
           listItemStyle={styles.listItem}
         />
       );
@@ -333,8 +413,12 @@ export default function AdminScreen({
           cardStyle={cardStyle}
           cardAnim={cardAnims[6]}
           attendanceLog={mergedAttendanceLog}
+          studentList={state.studentList}
+          sectionList={state.sectionList}
+          selectedSession={selectedSession}
           logItemAnims={logItemAnims}
           handleRemoveAttendance={handlers.handleRemoveAttendance}
+          handleAddAttendanceStudent={handlers.handleAddAttendanceStudent}
           setShowExportOptions={setShowExportOptions}
           setShowListSummary={setShowListSummary}
           listItemStyle={styles.listItem}
@@ -472,7 +556,7 @@ export default function AdminScreen({
         visible={showExportOptions}
         attendanceCount={mergedAttendanceLog.length}
         onClose={() => setShowExportOptions(false)}
-        onExport={handlers.handleExport}
+        onExport={(format) => handlers.handleExport(format, mergedAttendanceLog)}
       />
 
       <ListSummaryModal
@@ -483,6 +567,25 @@ export default function AdminScreen({
       />
 
       <WarningModal visible={showWarning} message={warningMessage} onClose={() => setShowWarning(false)} />
+
+      {selectedSectionForEnrollment && (
+        <AddStudentModal
+          visible={showAddStudentModal}
+          sectionId={selectedSectionForEnrollment.id}
+          sectionName={selectedSectionForEnrollment.name}
+          sections={state.sectionList || []}
+          onSectionChange={(section) => setSelectedSectionForEnrollment({ id: section.id, name: section.name })}
+          onClose={() => {
+            setShowAddStudentModal(false);
+            setSelectedSectionForEnrollment(null);
+          }}
+          onEnroll={(studentId, studentName) => {
+            handlers.showSuccessWithAnimation?.(`${studentName} added to ${selectedSectionForEnrollment.name}!`);
+          }}
+          apiBaseUrl={process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3001'}
+          authToken={session?.accessToken}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -517,5 +620,9 @@ const styles = StyleSheet.create({
     height: 224,
     borderRadius: theme.radius.card,
     backgroundColor: theme.colors.surface,
+  },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

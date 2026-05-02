@@ -42,11 +42,10 @@ Use this if:
 
 ## Project Scope
 
-- UI is **frontend-only**
-- No backend or database connection yet
-- QR scanner is currently a **placeholder**
-- Email actions are **not implemented yet**
-- For academic/demo purposes only
+- UI now connects to the local backend for admin/student login and logout
+- QR scanner is still a demo placeholder
+- Email actions are not implemented yet
+- Set `EXPO_PUBLIC_API_BASE_URL` if your phone cannot reach `http://localhost:3001`
 
 ---
 

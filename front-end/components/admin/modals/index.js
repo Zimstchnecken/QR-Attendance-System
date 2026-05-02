@@ -1,4 +1,5 @@
 export { WarningModal } from './WarningModal';
+export { AddStudentModal } from './AddStudentModal';
 export {
   InvalidateConfirmModal,
   EmergencyConfirmModal,

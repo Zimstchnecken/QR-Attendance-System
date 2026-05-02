@@ -1,29 +1,50 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated } from "react-native";
-import { logRows, sessionRows, studentRows } from "../../../data/admin";
+import { fetchClassSessions, fetchStudents, fetchSections } from "../../../utils/api";
 
-export const useAdminState = () => {
-  // QR Session state
+const MAX_ANIM_SLOTS = 20; // pre-allocate enough slots for dynamic additions
+
+// Placeholder session used before data loads so selectedSession is never null.
+const EMPTY_SESSION = {
+  id: "",
+  className: "—",
+  present: 0,
+  total: 0,
+  status: "Inactive",
+  isLastPeriod: false,
+};
+
+export const useAdminState = (apiToken) => {
+  // ── Loading / error ────────────────────────────────────────────────────────
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  // ── QR Session state ───────────────────────────────────────────────────────
   const [isGenerating, setIsGenerating] = useState(false);
   const [allowRename, setAllowRename] = useState(false);
-  const [selectedSession, setSelectedSession] = useState(sessionRows[0]);
-  const [sessionName, setSessionName] = useState(selectedSession.className);
-  
-  // Student state
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(EMPTY_SESSION);
+  const [sessionName, setSessionName] = useState(EMPTY_SESSION.className);
+
+  // ── Student state ──────────────────────────────────────────────────────────
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentEmail, setNewStudentEmail] = useState("");
   const [newStudentClass, setNewStudentClass] = useState("");
-  
-  // Session state
+  const [studentList, setStudentList] = useState([]);
+
+  // ── Sections list ──────────────────────────────────────────────────────────
+  const [sectionList, setSectionList] = useState([]);
+
+  // ── Session form state ─────────────────────────────────────────────────────
   const [showNewSessionForm, setShowNewSessionForm] = useState(false);
   const [newSessionName, setNewSessionName] = useState("");
-  
-  // Attendance state
-  const [attendanceLog, setAttendanceLog] = useState(logRows);
+
+  // ── Attendance state ───────────────────────────────────────────────────────
+  const [attendanceLog, setAttendanceLog] = useState([]);
   const [studentToRemove, setStudentToRemove] = useState(null);
-  
-  // Modal states
+
+  // ── Modal states ───────────────────────────────────────────────────────────
   const [showInvalidateConfirm, setShowInvalidateConfirm] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [showTeacherAbsentConfirm, setShowTeacherAbsentConfirm] = useState(false);
@@ -38,13 +59,13 @@ export const useAdminState = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
-  
-  // Message states
+
+  // ── Message states ─────────────────────────────────────────────────────────
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [lastScannedStudent, setLastScannedStudent] = useState(null);
-  
-  // Template states
+
+  // ── Template states ────────────────────────────────────────────────────────
   const [emailTemplate, setEmailTemplate] = useState(
     "Dear Parent,\n\nYour child {student} has checked in for {class} at {time}.\n\nBest regards,\nSchool Administration"
   );
@@ -57,17 +78,62 @@ export const useAdminState = () => {
   const [classEndedTemplate, setClassEndedTemplate] = useState(
     "Class Ended Notification\n\nDear Parent,\n\nYour child's class {class} has already ended. Thank you.\n\nSchool Administration"
   );
-  
-  // Animation refs
+
+  // ── Animation refs ─────────────────────────────────────────────────────────
   const successAnim = useRef(new Animated.Value(0)).current;
   const screenAnim = useRef(new Animated.Value(0)).current;
   const qrAnim = useRef(new Animated.Value(1)).current;
   const cardAnims = useRef(Array.from({ length: 7 }, () => new Animated.Value(0))).current;
-  const sessionItemAnims = useRef(sessionRows.map(() => new Animated.Value(0))).current;
-  const studentItemAnims = useRef(studentRows.map(() => new Animated.Value(0))).current;
-  const logItemAnims = useRef(logRows.map(() => new Animated.Value(0))).current;
+  const sessionItemAnims = useRef(Array.from({ length: MAX_ANIM_SLOTS }, () => new Animated.Value(0))).current;
+  const studentItemAnims = useRef(Array.from({ length: MAX_ANIM_SLOTS }, () => new Animated.Value(0))).current;
+  const logItemAnims = useRef(Array.from({ length: MAX_ANIM_SLOTS }, () => new Animated.Value(0))).current;
+
+  // ── Data fetching ──────────────────────────────────────────────────────────
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const [fetchedSessions, fetchedStudents, fetchedSections] = await Promise.all([
+        fetchClassSessions(apiToken),
+        fetchStudents(apiToken),
+        fetchSections(apiToken),
+      ]);
+
+      setSessions(fetchedSessions);
+      setStudentList(fetchedStudents);
+      setSectionList(fetchedSections);
+
+      // Select the first session as default (if any)
+      if (fetchedSessions.length > 0) {
+        setSelectedSession(fetchedSessions[0]);
+        setSessionName(fetchedSessions[0].className);
+      }
+
+      // Attendance starts empty — loaded on demand per session
+      setAttendanceLog([]);
+    } catch (err) {
+      setLoadError(err?.message ?? "Failed to load dashboard data.");
+      // Keep empty arrays as fallback — app remains usable
+      setSessions([]);
+      setStudentList([]);
+      setSectionList([]);
+      setAttendanceLog([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiToken]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   return {
+    // Loading / error
+    isLoading,
+    loadError,
+    reload: loadData,
+
     // QR Session
     isGenerating,
     setIsGenerating,
@@ -77,7 +143,9 @@ export const useAdminState = () => {
     setSelectedSession,
     sessionName,
     setSessionName,
-    
+    sessions,
+    setSessions,
+
     // Students
     showAddStudent,
     setShowAddStudent,
@@ -87,19 +155,23 @@ export const useAdminState = () => {
     setNewStudentEmail,
     newStudentClass,
     setNewStudentClass,
-    
+    studentList,
+    setStudentList,
+    sectionList,
+    setSectionList,
+
     // Sessions
     showNewSessionForm,
     setShowNewSessionForm,
     newSessionName,
     setNewSessionName,
-    
+
     // Attendance
     attendanceLog,
     setAttendanceLog,
     studentToRemove,
     setStudentToRemove,
-    
+
     // Modals
     showInvalidateConfirm,
     setShowInvalidateConfirm,
@@ -129,7 +201,7 @@ export const useAdminState = () => {
     setShowWarning,
     warningMessage,
     setWarningMessage,
-    
+
     // Messages
     showSuccessMessage,
     setShowSuccessMessage,
@@ -137,7 +209,7 @@ export const useAdminState = () => {
     setSuccessMessage,
     lastScannedStudent,
     setLastScannedStudent,
-    
+
     // Templates
     emailTemplate,
     setEmailTemplate,
@@ -147,7 +219,7 @@ export const useAdminState = () => {
     setTeacherAbsentTemplate,
     classEndedTemplate,
     setClassEndedTemplate,
-    
+
     // Animations
     successAnim,
     screenAnim,

@@ -11,6 +11,7 @@ import {
   StudentScreen,
   AdminScreen,
 } from "./app/index";
+import { loginAdmin, loginStudent, logoutUser } from "./utils/api";
 import { createQrSessionPayload, validateQrSessionPayload } from "./utils/qrSession";
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
   const [activeQrSession, setActiveQrSession] = useState(null);
   const [consumedNonces, setConsumedNonces] = useState([]);
   const [scanEvents, setScanEvents] = useState([]);
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     const applySystemUiVisibility = async () => {
@@ -96,8 +98,17 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [currentScreen]);
 
-  const handleAdminLogin = () => setCurrentScreen("admin");
-  const handleStudentLogin = () => setCurrentScreen("student");
+  const handleAdminLogin = async ({ email, password }) => {
+    const auth = await loginAdmin({ email, password });
+    setSession(auth);
+    setCurrentScreen("admin");
+  };
+
+  const handleStudentLogin = async ({ studentId, pin }) => {
+    const auth = await loginStudent({ studentId, pin });
+    setSession(auth);
+    setCurrentScreen("student");
+  };
 
   const handleOpenReset = (fromScreen) => {
     setResetReturnScreen(fromScreen);
@@ -132,7 +143,11 @@ export default function App() {
     setConsumedNonces([]);
   };
 
-  const handleScanQrPayload = ({ encodedPayload, studentId = "ST-078", studentName = "Student" }) => {
+  const handleScanQrPayload = ({ encodedPayload, studentId, studentName }) => {
+    // Use the logged-in student's identity from session
+    const resolvedStudentId = studentId || session?.user?.studentId || "ST-078";
+    const resolvedStudentName = studentName || session?.user?.name || "Student";
+
     const validation = validateQrSessionPayload({
       encodedPayload,
       schoolCode,
@@ -150,8 +165,8 @@ export default function App() {
     const { payload } = validation;
     const event = {
       id: `${Date.now()}`,
-      studentId,
-      studentName,
+      studentId: resolvedStudentId,
+      studentName: resolvedStudentName,
       className: payload.sessionName,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       date: new Date().toLocaleDateString([], { month: "short", day: "2-digit" }),
@@ -168,7 +183,16 @@ export default function App() {
     };
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (session) {
+      try {
+        await logoutUser({ token: session.accessToken, refreshToken: session.refreshToken });
+      } catch {
+        // Ignore logout failures and still clear the local session.
+      }
+    }
+
+    setSession(null);
     setCurrentScreen("adminLogin");
   };
 
@@ -209,6 +233,7 @@ export default function App() {
           scanEvents={scanEvents}
           onScanQrPayload={handleScanQrPayload}
           onLogout={handleLogout}
+          session={session}
         />
       )}
 
@@ -219,6 +244,7 @@ export default function App() {
           onGenerateQrSession={handleGenerateQrSession}
           onInvalidateQrSession={handleInvalidateQrSession}
           onLogout={handleLogout}
+          session={session}
         />
       )}
     </View>

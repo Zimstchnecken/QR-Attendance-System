@@ -19,9 +19,9 @@ export const ListSummaryModal = ({ visible, attendanceLog, sessionName, onClose 
           </TouchableOpacity>
         </View>
         <ScrollView className="mb-4">
-          {attendanceLog.length > 0 ? (
+          {(attendanceLog || []).length > 0 ? (
             <View>
-              {attendanceLog.map((row, index) => (
+              {(attendanceLog || []).map((row, index) => (
                 <View key={row.id} className={`py-3 ${index > 0 ? "border-t border-border" : ""}`}>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-1">

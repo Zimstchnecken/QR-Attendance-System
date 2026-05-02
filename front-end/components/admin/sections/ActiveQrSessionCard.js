@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Animated,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -10,16 +11,17 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { Ban, Plus, QrCode } from "lucide-react-native";
+import { Ban, Check, Plus, QrCode } from "lucide-react-native";
 import QR from "qrcode";
 import { GlassCard } from "../../";
 import { theme } from "../../../constants/theme";
-import { sessionRows } from "../../../data/admin";
 import { getSecondsUntilExpiry } from "../../../utils/qrSession";
 
 export const ActiveQrSessionCard = ({
   cardStyle,
   cardAnim,
+  sessions,
+  sectionList,
   selectedSession,
   handleSelectSession,
   showNewSessionForm,
@@ -147,54 +149,116 @@ export const ActiveQrSessionCard = ({
       <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">
         Quick Select Class
       </Text>
-      <View className="mb-4 flex-row gap-2 flex-wrap">
-        {sessionRows.map((session) => (
-          <TouchableOpacity
-            key={session.id}
-            onPress={() => handleSelectSession(session)}
-            className={`rounded-2xl px-4 py-2 border ${
-              selectedSession.id === session.id ? "bg-primary border-primary" : "bg-card border-border"
-            }`}
-            style={localStyles.sessionPill}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                selectedSession.id === session.id ? "text-white" : "text-textSecondary"
-              } font-sans`}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+      {/* Deduplicated class list — scrollable, compact rows */}
+      {(() => {
+        const seen = new Set();
+        const items = (sectionList && sectionList.length > 0 ? sectionList : sessions || [])
+          .filter((item) => {
+            const id = item.id;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+          })
+          .map((item) => ({
+            id: item.id,
+            name: item.name || item.className,
+          }));
+
+        if (items.length === 0) {
+          return (
+            <View className="mb-4 rounded-2xl border border-border bg-card px-4 py-3">
+              <Text className="text-sm text-textSecondary font-sans">No classes available.</Text>
+            </View>
+          );
+        }
+
+        return (
+          <View className="mb-4 rounded-2xl border border-border bg-card overflow-hidden" style={{ maxHeight: 200 }}>
+            <ScrollView
+              scrollEnabled
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
             >
-              {session.className}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity
-          onPress={() => setShowNewSessionForm(!showNewSessionForm)}
-          className="rounded-2xl px-3 py-2 border border-primary bg-primary/10"
-          style={localStyles.sessionPill}
-        >
-          <View className="flex-row items-center gap-1">
-            <Plus size={14} color={theme.colors.primary} />
-            <Text className="text-xs font-bold text-primary font-sans">New</Text>
+              {items.map((item, index) => {
+                const isSelected =
+                  selectedSession.id === item.id ||
+                  selectedSession.className === item.name;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => {
+                      const matchingSession = (sessions || []).find(
+                        (s) => s.className === item.name
+                      );
+                      handleSelectSession(
+                        matchingSession ?? {
+                          id: item.id,
+                          className: item.name,
+                          present: 0,
+                          total: 0,
+                          status: "Active",
+                          isLastPeriod: false,
+                        }
+                      );
+                    }}
+                    activeOpacity={0.7}
+                    className={`flex-row items-center justify-between px-4 py-3 ${
+                      index > 0 ? "border-t border-border" : ""
+                    } ${isSelected ? "bg-primary/10" : "bg-card"}`}
+                  >
+                    <Text
+                      className={`flex-1 text-sm font-semibold font-sans ${
+                        isSelected ? "text-primary" : "text-textPrimary"
+                      }`}
+                      numberOfLines={1}
+                    >
+                      {item.name}
+                    </Text>
+                    {isSelected && (
+                      <Check size={16} color={theme.colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
-        </TouchableOpacity>
-      </View>
+        );
+      })()}
+      {/* Create New Session — opens a subject picker for the selected section */}
+      <TouchableOpacity
+        onPress={() => setShowNewSessionForm(!showNewSessionForm)}
+        className="mb-4 flex-row items-center gap-2 rounded-2xl border border-primary bg-primary/10 px-4 py-3"
+      >
+        <Plus size={14} color={theme.colors.primary} />
+        <Text className="text-xs font-bold text-primary font-sans">
+          Open Session for {selectedSession?.className || "selected class"}
+        </Text>
+      </TouchableOpacity>
       {showNewSessionForm && (
         <View className="mb-4 rounded-2xl border border-primary/20 bg-primary/10 p-4">
+          <Text className="mb-1 text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">
+            Class
+          </Text>
+          <Text className="mb-3 text-sm font-semibold text-textPrimary font-sans">
+            {selectedSession?.className || "—"}
+          </Text>
           <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">
-            Session Name
+            Subject
           </Text>
           <TextInput
             value={newSessionName}
             onChangeText={setNewSessionName}
-            placeholder="e.g., Class 10A"
+            placeholder="e.g., Mathematics, Physics..."
             placeholderTextColor="#9CA3AF"
             className="mb-3 rounded-2xl border border-border bg-background px-3 py-2 text-sm text-textPrimary font-sans"
           />
+          <Text className="mb-3 text-xs text-textSecondary font-sans">
+            This will open a class session for today ({new Date().toLocaleDateString()}).
+          </Text>
           <View className="flex-row gap-2" style={isCompact ? localStyles.stackActionRow : null}>
             <TouchableOpacity
               activeOpacity={0.9}
-              onPress={() => setShowNewSessionForm(false)}
+              onPress={() => { setShowNewSessionForm(false); setNewSessionName(""); }}
               className="flex-1 rounded-2xl border border-border bg-card px-3 py-2"
               style={[localStyles.actionButton, isCompact ? localStyles.fullWidthButton : null]}
             >
@@ -203,10 +267,13 @@ export const ActiveQrSessionCard = ({
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={handleCreateSession}
-              className="flex-1 rounded-2xl bg-primary px-3 py-2"
+              disabled={!newSessionName.trim()}
+              className={`flex-1 rounded-2xl px-3 py-2 ${newSessionName.trim() ? "bg-primary" : "bg-surface"}`}
               style={[localStyles.actionButton, isCompact ? localStyles.fullWidthButton : null]}
             >
-              <Text className="text-center text-sm font-semibold text-white font-sans">Create</Text>
+              <Text className={`text-center text-sm font-semibold font-sans ${newSessionName.trim() ? "text-white" : "text-textSecondary"}`}>
+                Open Session
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

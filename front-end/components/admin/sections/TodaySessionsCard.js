@@ -3,9 +3,8 @@ import { Animated, StyleSheet, Text, useWindowDimensions, View } from "react-nat
 import { Clock3 } from "lucide-react-native";
 import { GlassCard } from "../../";
 import { theme } from "../../../constants/theme";
-import { sessionRows } from "../../../data/admin";
 
-export const TodaySessionsCard = ({ cardStyle, cardAnim, sessionItemAnims, listItemStyle }) => {
+export const TodaySessionsCard = ({ cardStyle, cardAnim, sessions, sessionItemAnims, listItemStyle }) => {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
 
@@ -28,11 +27,13 @@ export const TodaySessionsCard = ({ cardStyle, cardAnim, sessionItemAnims, listI
           </Text>
         </View>
         <View className="rounded-full bg-primary/10 px-3 py-1" style={isCompact ? styles.compactBadge : null}>
-          <Text className="text-xs font-semibold text-primary font-sans">{sessionRows.length} classes</Text>
+          <Text className="text-xs font-semibold text-primary font-sans">{(sessions || []).length} classes</Text>
         </View>
       </View>
-      {sessionRows.map((row, index) => {
-        const completion = Math.round((row.present / row.total) * 100);
+      {(sessions || []).map((row, index) => {
+        const total = row.total || 0;
+        const present = row.present || 0;
+        const completion = total > 0 ? Math.round((present / total) * 100) : 0;
 
         return (
           <Animated.View

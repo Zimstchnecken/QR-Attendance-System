@@ -21,13 +21,21 @@ export default function AdminLoginScreen({ onLogin, onSwitchToStudent, onForgotP
   const [password, setPassword] = useState(adminLoginDefaults.password);
   const [focusedField, setFocusedField] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    setErrorMessage("");
+
+    try {
+      await onLogin({ email, password });
+    } catch (error) {
       setIsLoading(false);
-      onLogin();
-    }, 600);
+      setErrorMessage(error instanceof Error ? error.message : "Login failed.");
+      return;
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -116,6 +124,12 @@ export default function AdminLoginScreen({ onLogin, onSwitchToStudent, onForgotP
                 )}
               </View>
             </TouchableOpacity>
+
+            {errorMessage ? (
+              <View className="mt-4 rounded-2xl border border-danger/20 bg-danger/10 p-4">
+                <Text className="text-sm font-semibold text-danger font-sans">{errorMessage}</Text>
+              </View>
+            ) : null}
           </GlassCard>
 
           <View className="mb-6 rounded-2xl border border-border bg-card p-4" style={styles.secondaryActions}>
