@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Animated, SafeAreaView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { ClipboardList, FileText, House, QrCode, Users } from "lucide-react-native";
 import { ScreenBackground } from "../components";
 import { theme } from "../constants/theme";
@@ -77,6 +86,9 @@ export default function AdminScreen({
   onInvalidateQrSession,
   onLogout,
   session,
+  onNavigateToSection,
+  onNavigateToSettings,
+  onNavigateToNotifications,
 }) {
   const state = useAdminState(session?.accessToken);
   const handlers = useAdminHandlers(state, {
@@ -368,6 +380,7 @@ export default function AdminScreen({
           qrAnim={qrAnim}
           handleGenerateQr={handlers.handleGenerateQr}
           handleInvalidateQr={handlers.handleInvalidateQr}
+          session={session}
           styles={styles}
         />
       );
@@ -402,6 +415,12 @@ export default function AdminScreen({
                 : { id: '', name: 'Current Section' }
             );
           }}
+          onImportStudents={handlers.handleImportStudents}
+          onDownloadTemplate={handlers.handleDownloadTemplate}
+          onNavigateToSection={(section) => 
+            onNavigateToSection(section, state.studentList, handlers.handleUpdateParentEmail)
+          }
+          onUpdateParentEmail={handlers.handleUpdateParentEmail}
           listItemStyle={styles.listItem}
         />
       );
@@ -442,7 +461,12 @@ export default function AdminScreen({
         contentContainerStyle={[styles.scrollContent, scrollPadding]}
         style={[styles.scrollView, screenStyle]}
       >
-        <DashboardHeader onLogout={onLogout} />
+        <DashboardHeader 
+          onLogout={onLogout} 
+          onNavigateToSettings={onNavigateToSettings}
+          onNavigateToNotifications={onNavigateToNotifications}
+          teachingSubject={session?.user?.subject}
+        />
 
         <View className="mb-5 flex-row items-start justify-between gap-3" style={isCompact ? styles.compactPageHeader : null}>
           <View className="flex-1 pr-2" style={isCompact ? styles.compactPageHeaderText : null}>
@@ -563,6 +587,7 @@ export default function AdminScreen({
         visible={showListSummary}
         attendanceLog={mergedAttendanceLog}
         sessionName={selectedSession.className}
+        onExport={() => handlers.handleExport("pdf", mergedAttendanceLog)}
         onClose={() => setShowListSummary(false)}
       />
 

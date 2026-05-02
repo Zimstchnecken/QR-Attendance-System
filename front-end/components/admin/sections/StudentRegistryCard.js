@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Animated,
   Alert,
@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { GraduationCap, UserPlus, Search, X, Pencil, Check } from "lucide-react-native";
+import { GraduationCap, UserPlus, Search, X, Pencil, Check, Users, ChevronRight } from "lucide-react-native";
 import { GlassCard } from "../../";
 import { theme } from "../../../constants/theme";
 
@@ -23,6 +23,9 @@ export const StudentRegistryCard = ({
   onOpenAddStudentModal,
   listItemStyle,
   onUpdateParentEmail,
+  onNavigateToSection,
+  onDownloadTemplate,
+  onImportStudents,
 }) => {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
@@ -101,152 +104,108 @@ export const StudentRegistryCard = ({
     <GlassCard className="mb-6 overflow-hidden" style={[styles.card, cardStyle(cardAnim)]}>
       <View style={styles.cardGlow} />
 
-      {/* Header */}
-      <View className="mb-3 flex-row items-start justify-between gap-3" style={isCompact ? styles.compactHeaderRow : null}>
-        <View className="flex-1" style={isCompact ? styles.compactHeaderTitle : null}>
-          <View className="flex-row items-center gap-2">
-            <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-              <GraduationCap size={20} color={theme.colors.primary} />
-            </View>
-            <Text className="text-lg font-semibold text-textPrimary font-sans">Student Registry</Text>
+      {/* Header Section */}
+      <View className="mb-6 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-3">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+            <GraduationCap size={24} color={theme.colors.primary} />
           </View>
-          <Text className="mt-2 text-sm text-textSecondary font-sans">
-            Keep student records updated and assign classes in one flow.
-          </Text>
+          <View>
+            <Text className="text-xl font-bold text-textPrimary font-sans">Class Registry</Text>
+            <Text className="text-[11px] text-textSecondary font-sans uppercase tracking-widest">Section Management</Text>
+          </View>
         </View>
-        <View className="flex-col items-end gap-2">
-          <View className="rounded-full bg-primary/10 px-3 py-1">
-            <Text className="text-xs font-semibold text-primary font-sans">
-              {filteredStudents.length}/{deduplicatedStudents.length} students
-            </Text>
-          </View>
+        
+        <View className="flex-row gap-2">
+          {onImportStudents && (
+            <TouchableOpacity
+              onPress={onImportStudents}
+              activeOpacity={0.8}
+              className="h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/5"
+            >
+              <UserPlus size={18} color={theme.colors.primary} />
+            </TouchableOpacity>
+          )}
           {onOpenAddStudentModal && (
             <TouchableOpacity
               onPress={onOpenAddStudentModal}
-              className="flex-row items-center gap-1 rounded-lg bg-primary px-3 py-2"
+              activeOpacity={0.8}
+              className="h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/20"
             >
-              <UserPlus size={14} color="white" />
-              <Text className="text-xs font-semibold text-white font-sans">Add Student</Text>
+              <Users size={18} color="white" />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {/* Search */}
-      <View className="mb-3 flex-row items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-        <Search size={16} color={theme.colors.textSecondary} />
+      {/* Modern Search Bar */}
+      <View className="mb-6 flex-row items-center gap-3 rounded-2xl border border-border bg-card/50 px-4 py-3.5">
+        <Search size={18} color={theme.colors.textSecondary} />
         <TextInput
-          placeholder="Search student name..."
+          placeholder="Search sections or grade levels..."
           placeholderTextColor={theme.colors.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          className="flex-1 text-sm text-textPrimary font-sans"
-          style={{ color: theme.colors.textPrimary }}
+          className="flex-1 text-base text-textPrimary font-sans"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <X size={16} color={theme.colors.textSecondary} />
+            <X size={18} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Class filter pills */}
-      {classNames.length > 2 && (
-        <View className="mb-4 flex-row flex-wrap gap-2">
-          {classNames.map((cls) => (
-            <TouchableOpacity
-              key={cls}
-              onPress={() => setSelectedClass(cls)}
-              className={`rounded-full px-3 py-1 border ${
-                selectedClass === cls ? "bg-primary border-primary" : "bg-card border-border"
-              }`}
-            >
-              <Text className={`text-xs font-semibold font-sans ${selectedClass === cls ? "text-white" : "text-textSecondary"}`}>
-                {cls === "all" ? "All Classes" : cls}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+      {/* Section Registry Grid */}
+      <View className="flex-col gap-3">
+        {(sectionList || [])
+          .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+          .map((section, index) => {
+            const studentCount = (studentList || []).filter(
+              std => (std.className || std.gradeLevel) === section.name
+            ).length;
 
-      {/* Grouped student list */}
-      {Object.entries(groupedStudents).map(([className, students]) => (
-        <View key={className} className="mb-4">
-          {/* Class section header */}
-          <View className="mb-2 flex-row items-center gap-2">
-            <View className="h-px flex-1 bg-border" />
-            <View className="rounded-full bg-primary/10 px-3 py-1">
-              <Text className="text-xs font-semibold text-primary font-sans">{className}</Text>
-            </View>
-            <View className="h-px flex-1 bg-border" />
-          </View>
-
-          {students.map((row, index) => (
-            <Animated.View
-              key={row.id}
-              className="mb-3 rounded-2xl border border-border bg-card p-4"
-              style={[listItemStyle, styles.studentRow, cardStyle(studentItemAnims[index] || studentItemAnims[0])]}
-            >
-              <View className="flex-row items-center justify-between" style={isCompact ? styles.compactRowTop : null}>
-                <Text className="text-base font-semibold text-textPrimary font-sans flex-1">{row.name}</Text>
-                <View className="ml-2 rounded-lg bg-primary/10 px-2 py-1">
-                  <Text className="text-xs font-semibold text-primary font-sans">
-                    {row.studentNumber || row.id}
-                  </Text>
+            return (
+              <TouchableOpacity
+                key={section.id || section.name}
+                onPress={() => onNavigateToSection && onNavigateToSection(section)}
+                activeOpacity={0.7}
+                className="overflow-hidden rounded-3xl border border-border bg-white p-4 shadow-sm"
+                style={[styles.sectionCard, cardStyle(studentItemAnims[index] || studentItemAnims[0])]}
+              >
+                <View style={styles.sectionGlow} />
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-4">
+                    <View className="h-14 w-14 items-center justify-center rounded-2xl bg-surface border border-border">
+                      <GraduationCap size={26} color={theme.colors.primary} />
+                      <View className="absolute -bottom-1 -right-1 h-5 w-5 items-center justify-center rounded-full bg-primary">
+                         <Text className="text-[10px] font-bold text-white">✓</Text>
+                      </View>
+                    </View>
+                    <View>
+                      <Text className="text-lg font-bold text-textPrimary font-sans">{section.name}</Text>
+                      <View className="mt-1 flex-row items-center gap-2">
+                        <View className="rounded-md bg-primary/10 px-2 py-0.5">
+                          <Text className="text-[10px] font-bold uppercase text-primary font-sans">
+                            {studentCount} Enrolled
+                          </Text>
+                        </View>
+                        <Text className="text-[10px] text-textSecondary font-sans">Active Section</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View className="h-10 w-10 items-center justify-center rounded-2xl bg-surface/80 border border-border">
+                    <ChevronRight size={20} color={theme.colors.textSecondary} />
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
+            );
+          })}
+      </View>
 
-              {/* Editable parent email */}
-              <View className="mt-2 flex-row items-center gap-2">
-                {editingId === row.id ? (
-                  <>
-                    <TextInput
-                      value={editingEmail}
-                      onChangeText={setEditingEmail}
-                      placeholder="Parent email..."
-                      placeholderTextColor={theme.colors.textSecondary}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      className="flex-1 rounded-lg border border-primary bg-background px-2 py-1 text-sm text-textPrimary font-sans"
-                      style={{ color: theme.colors.textPrimary }}
-                    />
-                    <TouchableOpacity
-                      onPress={() => confirmEdit(row)}
-                      className="h-8 w-8 items-center justify-center rounded-lg bg-success/10"
-                    >
-                      <Check size={15} color={theme.colors.success} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={cancelEdit}
-                      className="h-8 w-8 items-center justify-center rounded-lg bg-danger/10"
-                    >
-                      <X size={15} color={theme.colors.danger} />
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <Text className="flex-1 text-sm text-textSecondary font-sans" numberOfLines={1} ellipsizeMode="tail">
-                      {row.parent ? `📧 ${row.parent}` : "No parent email"}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => startEdit(row)}
-                      className="h-8 w-8 items-center justify-center rounded-lg bg-primary/10"
-                    >
-                      <Pencil size={14} color={theme.colors.primary} />
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            </Animated.View>
-          ))}
-        </View>
-      ))}
-
-      {filteredStudents.length === 0 && (
-        <View className="my-6 items-center">
-          <Text className="text-sm text-textSecondary font-sans">
-            {searchQuery ? `No students found matching "${searchQuery}"` : "No students in this class."}
-          </Text>
+      {(!sectionList || sectionList.length === 0) && (
+        <View className="my-10 items-center py-10 rounded-3xl border border-dashed border-border">
+          <GraduationCap size={48} color={theme.colors.textSecondary} />
+          <Text className="mt-4 text-sm font-semibold text-textSecondary font-sans">No sections found.</Text>
         </View>
       )}
     </GlassCard>
@@ -254,18 +213,14 @@ export const StudentRegistryCard = ({
 };
 
 const styles = StyleSheet.create({
-  card: { borderColor: "rgba(15, 118, 110, 0.2)" },
-  compactHeaderRow: { alignItems: "stretch" },
-  compactHeaderTitle: { flexBasis: "100%" },
-  compactRowTop: { flexDirection: "column", alignItems: "flex-start" },
+  card: { borderColor: "rgba(15, 118, 110, 0.15)" },
   cardGlow: {
-    position: "absolute",
-    right: -30,
-    top: -36,
-    width: 120,
-    height: 120,
-    borderRadius: 999,
-    backgroundColor: "rgba(15, 118, 110, 0.1)",
+    position: "absolute", right: -30, top: -30, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(15, 118, 110, 0.08)",
   },
-  studentRow: { borderColor: "rgba(229, 231, 235, 0.9)" },
+  sectionCard: {
+    position: "relative",
+  },
+  sectionGlow: {
+    position: "absolute", left: 0, top: 0, width: 4, height: "100%", backgroundColor: theme.colors.primary, opacity: 0.3,
+  },
 });

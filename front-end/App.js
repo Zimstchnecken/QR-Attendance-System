@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppState, Platform, StatusBar as NativeStatusBar, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import "./global.css";
 import {
@@ -10,6 +11,10 @@ import {
   StudentLoginScreen,
   StudentScreen,
   AdminScreen,
+  SectionRegistryScreen,
+  SettingsScreen,
+  NotificationsScreen,
+  SupportScreen,
 } from "./app/index";
 import { loginAdmin, loginStudent, logoutUser } from "./utils/api";
 import { createQrSessionPayload, validateQrSessionPayload } from "./utils/qrSession";
@@ -22,6 +27,10 @@ export default function App() {
   const [consumedNonces, setConsumedNonces] = useState([]);
   const [scanEvents, setScanEvents] = useState([]);
   const [session, setSession] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [studentList, setStudentList] = useState([]);
+  const [onUpdateStudent, setOnUpdateStudent] = useState(null);
+  const [returnScreen, setReturnScreen] = useState("admin");
 
   useEffect(() => {
     const applySystemUiVisibility = async () => {
@@ -32,8 +41,6 @@ export default function App() {
       }
 
       try {
-        await NavigationBar.setBehaviorAsync("overlay-swipe");
-        await NavigationBar.setPositionAsync("absolute");
         await NavigationBar.setVisibilityAsync("hidden");
       } catch (error) {
         // Ignore platform-specific failures and keep app usable.
@@ -196,8 +203,19 @@ export default function App() {
     setCurrentScreen("adminLogin");
   };
 
+  const handleUpdateSubject = (subject) => {
+    setSession((prev) => ({
+      ...prev,
+      user: {
+        ...(prev?.user || {}),
+        subject: subject,
+      },
+    }));
+  };
+
   return (
-    <View className="flex-1">
+    <SafeAreaProvider>
+      <View className="flex-1">
       {currentScreen === "splash" && <SplashScreen />}
 
       {currentScreen === "intro" && (
@@ -234,6 +252,18 @@ export default function App() {
           onScanQrPayload={handleScanQrPayload}
           onLogout={handleLogout}
           session={session}
+          onNavigateToSettings={() => {
+            setReturnScreen("student");
+            setCurrentScreen("settings");
+          }}
+          onNavigateToNotifications={() => {
+            setReturnScreen("student");
+            setCurrentScreen("notifications");
+          }}
+          onNavigateToSupport={() => {
+            setReturnScreen("student");
+            setCurrentScreen("support");
+          }}
         />
       )}
 
@@ -245,8 +275,58 @@ export default function App() {
           onInvalidateQrSession={handleInvalidateQrSession}
           onLogout={handleLogout}
           session={session}
+          onNavigateToSettings={() => {
+            setReturnScreen("admin");
+            setCurrentScreen("settings");
+          }}
+          onNavigateToNotifications={() => {
+            setReturnScreen("admin");
+            setCurrentScreen("notifications");
+          }}
+          onNavigateToSupport={() => {
+            setReturnScreen("admin");
+            setCurrentScreen("support");
+          }}
+          onNavigateToSection={(section, list, updateFn) => {
+            setSelectedSection(section);
+            setStudentList(list);
+            setOnUpdateStudent(() => updateFn);
+            setCurrentScreen("sectionRegistry");
+          }}
         />
       )}
-    </View>
+
+      {currentScreen === "sectionRegistry" && (
+        <SectionRegistryScreen
+          section={selectedSection}
+          studentList={studentList}
+          onUpdateParentEmail={onUpdateStudent}
+          onBack={() => setCurrentScreen("admin")}
+        />
+      )}
+      
+      {currentScreen === "settings" && (
+        <SettingsScreen
+          session={session}
+          onBack={() => setCurrentScreen(returnScreen)}
+          onLogout={handleLogout}
+          onSupport={() => setCurrentScreen("support")}
+          onUpdateSubject={handleUpdateSubject}
+        />
+      )}
+
+      {currentScreen === "notifications" && (
+        <NotificationsScreen
+          onBack={() => setCurrentScreen(returnScreen)}
+        />
+      )}
+
+      {currentScreen === "support" && (
+        <SupportScreen
+          onBack={() => setCurrentScreen(returnScreen)}
+        />
+      )}
+      </View>
+    </SafeAreaProvider>
   );
 }

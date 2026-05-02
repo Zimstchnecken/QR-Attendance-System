@@ -1,10 +1,16 @@
 import { Animated } from "react-native";
 import {
+  fetchStudents,
   fetchClassSessions,
   fetchSectionSubjects,
   openClassSession,
   sendAttendanceSummaryEmail,
+  bulkImportStudents,
 } from "../../../utils/api";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+import * as DocumentPicker from "expo-document-picker";
+import * as Print from "expo-print";
 
 export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherName = "Admin") => {
   const {
@@ -187,39 +193,28 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
     setStudentToRemove(null);
   };
 
-  const handleAddAttendanceStudent = (student) => {
-    if (!student) {
-      setWarningMessage("Please select a student to add to attendance.");
-      setShowWarning(true);
-      return;
-    }
+  const handleAddAttendanceStudent = (students) => {
+    if (!students) return;
+    const studentArray = Array.isArray(students) ? students : [students];
+    
+    if (studentArray.length === 0) return;
 
-    const targetClassName = state.selectedSession?.className || "Unassigned Class";
-    const hasDuplicate = attendanceLog.some(
-      (record) => record.name === student.name && record.className === targetClassName
-    );
-
-    if (hasDuplicate) {
-      setWarningMessage(`${student.name} is already marked present for ${targetClassName}.`);
-      setShowWarning(true);
-      return;
-    }
-
+    const targetClassName = selectedSession?.className || "General";
     const currentTime = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
 
-    const newRecord = {
-      id: `M-${Date.now()}`,
+    const newRecords = studentArray.map((student, index) => ({
+      id: `M-${Date.now()}-${index}`,
       name: student.name,
       className: targetClassName,
       time: currentTime,
-    };
+    }));
 
-    setAttendanceLog([newRecord, ...attendanceLog]);
-    showSuccessWithAnimation(`${student.name} added to attendance.`);
+    setAttendanceLog([...newRecords, ...attendanceLog]);
+    showSuccessWithAnimation(`${studentArray.length} student(s) added to attendance.`);
   };
 
   const handleSaveStudent = () => {
@@ -396,43 +391,166 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
       const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
       try {
-        const { Share } = require("react-native");
-        await Share.share({
-          message: csvContent,
-          title: `Attendance Export - ${selectedSession?.className || "All Classes"}`,
+        const filename = `Attendance_${(selectedSession?.className || "All").replace(/\s+/g, "_")}_${Date.now()}.csv`;
+        const fileUri = `${FileSystem.cacheDirectory}${filename}`;
+        
+        await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+          encoding: FileSystem.EncodingType.UTF8,
         });
-        showSuccessWithAnimation(`CSV exported! (${logToExport.length} records)`);
-      } catch {
-        showSuccessWithAnimation(`CSV ready (${logToExport.length} records)`);
+
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: "text/csv",
+            dialogTitle: "Download Attendance Report",
+            UTI: "public.comma-separated-values-text",
+          });
+          showSuccessWithAnimation(`Report exported as ${filename}`);
+        } else {
+          // Fallback to basic share if expo-sharing is not supported (unlikely on mobile)
+          const { Share } = require("react-native");
+          await Share.share({ message: csvContent });
+        }
+      } catch (err) {
+        setWarningMessage("Failed to generate file for download.");
+        setShowWarning(true);
       }
       return;
     }
 
     if (format === "pdf") {
-      // PDF requires expo-print which isn't installed — share as formatted text instead
-      const lines = logToExport.map(
-        (row, i) =>
-          `${i + 1}. ${row.name || "—"}  |  ${row.className || "—"}  |  ${row.time || "—"}  |  ${row.status || "Present"}`
-      );
-      const textContent = [
-        `ATTENDANCE REPORT`,
-        `Session: ${selectedSession?.className || "All Classes"}`,
-        `Date: ${new Date().toLocaleDateString()}`,
-        `Total: ${logToExport.length} records`,
-        ``,
-        ...lines,
-      ].join("\n");
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: 'Helvetica', sans-serif; padding: 20px; color: #111; }
+              h1 { color: #0F766E; margin-bottom: 5px; }
+              .meta { color: #666; margin-bottom: 20px; font-size: 14px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th { background-color: #F3F4F6; text-align: left; padding: 12px; border-bottom: 2px solid #E5E7EB; }
+              td { padding: 12px; border-bottom: 1px solid #E5E7EB; }
+              .present { color: #166534; font-weight: bold; }
+              .footer { margin-top: 40px; font-size: 12px; color: #999; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <h1>ATTENDANCE REPORT</h1>
+            <div class="meta">
+              <p>Session: ${selectedSession?.className || "All Classes"}</p>
+              <p>Date: ${new Date().toLocaleDateString()}</p>
+              <p>Total Records: ${logToExport.length}</p>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student Name</th>
+                  <th>Class</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${logToExport.map((row, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${row.name || "—"}</td>
+                    <td>${row.className || "—"}</td>
+                    <td>${row.time || "—"}</td>
+                    <td class="present">${row.status || "Present"}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="footer">
+              Generated by ZapRoll Attendance System - ${new Date().toLocaleString()}
+            </div>
+          </body>
+        </html>
+      `;
 
       try {
-        const { Share } = require("react-native");
-        await Share.share({
-          message: textContent,
-          title: `Attendance Report - ${selectedSession?.className || "All Classes"}`,
+        const { uri } = await Print.printToFileAsync({ html: htmlContent });
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Save Attendance Report",
         });
-        showSuccessWithAnimation(`Report shared! (${logToExport.length} records)`);
-      } catch {
-        showSuccessWithAnimation(`Report ready (${logToExport.length} records)`);
+        showSuccessWithAnimation(`PDF Report saved!`);
+      } catch (err) {
+        setWarningMessage("Failed to generate PDF report.");
+        setShowWarning(true);
       }
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    const csvContent = "firstName,lastName,studentNumber,gradeLevel,parentEmail,sectionName\nJohn,Doe,ST-001,Grade 10,john.doe@example.com,Grade 10 - Newton\nJane,Smith,ST-002,Grade 11,jane.smith@example.com,Grade 11 - Einstein";
+    
+    try {
+      const filename = "Student_Import_Template.csv";
+      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent);
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "text/csv",
+          dialogTitle: "Download Import Template",
+        });
+      }
+    } catch (err) {
+      setWarningMessage("Failed to download template.");
+      setShowWarning(true);
+    }
+  };
+
+  const handleImportStudents = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["text/comma-separated-values", "text/csv"],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const fileUri = result.assets[0].uri;
+      const content = await FileSystem.readAsStringAsync(fileUri);
+      
+      const lines = content.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) {
+        setWarningMessage("The CSV file is empty or missing data.");
+        setShowWarning(true);
+        return;
+      }
+
+      const headers = lines[0].split(",").map(h => h.trim());
+      
+      const studentsToImport = lines.slice(1).map(line => {
+        const values = line.split(",").map(v => v.trim());
+        const student = {};
+        headers.forEach((header, index) => {
+          student[header] = values[index];
+        });
+        return student;
+      }).filter(s => s.firstName && s.lastName);
+
+      if (studentsToImport.length === 0) {
+        setWarningMessage("No valid student records found (FirstName and LastName are required).");
+        setShowWarning(true);
+        return;
+      }
+
+      setIsGenerating(true);
+      const importResult = await bulkImportStudents(studentsToImport, apiToken);
+      setIsGenerating(false);
+      
+      showSuccessWithAnimation(`Successfully imported ${importResult.imported} students!`);
+      
+      // Refresh students
+      const updatedStudents = await fetchStudents(apiToken);
+      state.setStudentList(updatedStudents);
+    } catch (err) {
+      setIsGenerating(false);
+      setWarningMessage(err.message || "Import failed. Check your file format.");
+      setShowWarning(true);
     }
   };
 
@@ -458,6 +576,8 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
     handleClassEnded,
     handleConfirmClassEnded,
     handleExport,
+    handleDownloadTemplate,
+    handleImportStudents,
     showSuccessWithAnimation,
   };
 };

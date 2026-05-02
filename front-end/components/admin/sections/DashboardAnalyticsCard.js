@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { BarChart3 } from "lucide-react-native";
 import { GlassCard } from "../../";
@@ -82,62 +82,90 @@ export const DashboardAnalyticsCard = ({ cardStyle, cardAnim, attendanceLog, sel
     <GlassCard className="mb-6 overflow-hidden" style={[styles.card, cardStyle(cardAnim)]}>
       <View style={styles.cardGlow} />
 
-      <View className="mb-4 flex-row items-start justify-between gap-3">
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2">
-            <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-              <BarChart3 size={18} color={theme.colors.primary} />
-            </View>
-            <Text className="text-lg font-semibold text-textPrimary font-sans">Performance Snapshot</Text>
+      <View className="mb-6 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-3">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-sm shadow-primary/10">
+            <BarChart3 size={22} color={theme.colors.primary} />
           </View>
-          <Text className="mt-2 text-sm text-textSecondary font-sans">
-            Dashboard is summary-only. Use other tabs for edits and actions.
-          </Text>
+          <View>
+            <Text className="text-xl font-bold text-textPrimary font-sans">Pedagogical Insights</Text>
+            <Text className="text-[10px] font-bold uppercase tracking-widest text-textSecondary font-sans">Engagement Analytics</Text>
+          </View>
         </View>
-        <View className="rounded-full bg-primary/10 px-3 py-1">
-          <Text className="text-xs font-semibold text-primary font-sans">Analytics</Text>
+        <View className="rounded-full bg-primary px-3 py-1 shadow-sm shadow-primary/20">
+          <Text className="text-[10px] font-bold text-white font-sans uppercase">Real-time</Text>
         </View>
       </View>
 
-      <View className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">
-          Check-ins By Class
-        </Text>
-        {classRows.map((row) => {
-          const widthPercent = Math.max((row.value / maxClass) * 100, row.value > 0 ? 10 : 4);
+      <View className="flex-col gap-6">
+        {/* Class distribution */}
+        <View className="rounded-3xl border border-border bg-surface/50 p-5">
+          <View className="mb-5 flex-row items-center justify-between">
+            <Text className="text-xs font-bold uppercase tracking-wider text-textSecondary font-sans">
+              Enrollment by Session
+            </Text>
+            <View className="h-2 w-2 rounded-full bg-primary" />
+          </View>
+          
+          <View className="gap-4">
+            {classRows.map((row) => {
+              const widthPercent = Math.max((row.value / maxClass) * 100, row.value > 0 ? 10 : 2);
 
-          return (
-            <View key={row.name} className="mt-3 flex-row items-center gap-2">
-              <Text className="w-28 text-xs font-semibold text-textSecondary font-sans" numberOfLines={1}>
-                {row.name}
-              </Text>
-              <View className="h-2 flex-1 overflow-hidden rounded-full bg-surface">
-                <View className="h-full rounded-full bg-primary" style={{ width: `${widthPercent}%` }} />
-              </View>
-              <Text className="w-6 text-right text-xs font-semibold text-textPrimary font-sans">{row.value}</Text>
-            </View>
-          );
-        })}
-      </View>
-
-      <View className="mt-4 rounded-2xl border border-success/20 bg-success/10 p-4">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-textSecondary font-sans">
-          Check-In Timeline
-        </Text>
-        <View className="mt-3 flex-row items-end justify-between">
-          {timeRows.map((row) => {
-            const height = row.value === 0 ? 8 : 12 + (row.value / maxTime) * 44;
-
-            return (
-              <View key={row.key} className="items-center">
-                <View className="justify-end rounded-md bg-success/20 px-2" style={{ height: 60 }}>
-                  <View className="w-4 rounded-sm bg-success" style={{ height }} />
+              return (
+                <View key={row.name}>
+                  <View className="mb-2 flex-row items-center justify-between">
+                    <Text className="text-xs font-bold text-textPrimary font-sans" numberOfLines={1}>
+                      {row.name}
+                    </Text>
+                    <Text className="text-xs font-bold text-primary font-sans">{row.value} Students</Text>
+                  </View>
+                  <View className="h-2.5 w-full overflow-hidden rounded-full bg-border/30">
+                    <View 
+                      className="h-full rounded-full bg-primary shadow-sm" 
+                      style={{ width: `${widthPercent}%` }} 
+                    />
+                  </View>
                 </View>
-                <Text className="mt-2 text-xs font-semibold text-textSecondary font-sans">{row.label}</Text>
-              </View>
-            );
-          })}
+              );
+            })}
+          </View>
         </View>
+
+        {/* Time-based trend */}
+        <View className="rounded-3xl border border-border bg-white p-5 shadow-sm shadow-black/5">
+          <View className="mb-6 flex-row items-center justify-between">
+            <Text className="text-xs font-bold uppercase tracking-wider text-textSecondary font-sans">
+              Peak Scan Activity
+            </Text>
+            <Text className="text-[10px] font-bold text-success font-sans">TODAY</Text>
+          </View>
+
+          <View className="flex-row items-end justify-between h-32 px-1">
+            {timeRows.map((row) => {
+              const barHeight = row.value === 0 ? 8 : (row.value / maxTime) * 100;
+              const isActive = row.value === maxTime && maxTime > 0;
+
+              return (
+                <View key={row.key} className="items-center flex-1">
+                  <View 
+                    className={`w-6 rounded-t-xl transition-all duration-300 ${isActive ? "bg-success" : "bg-success/20"}`} 
+                    style={{ height: `${barHeight}%`, minHeight: 6 }} 
+                  />
+                  <View className="mt-3 h-px w-full bg-border/40" />
+                  <Text className={`mt-2 text-[10px] font-bold font-sans ${isActive ? "text-success" : "text-textSecondary"}`}>
+                    {row.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+
+      <View className="mt-6 flex-row items-center justify-center gap-2 rounded-2xl bg-surface/50 py-3 px-4 border border-border/50">
+        <Text className="text-[11px] text-textSecondary font-sans text-center">
+          Insights are refreshed automatically every 30 seconds.
+        </Text>
       </View>
     </GlassCard>
   );
@@ -145,16 +173,16 @@ export const DashboardAnalyticsCard = ({ cardStyle, cardAnim, attendanceLog, sel
 
 const styles = StyleSheet.create({
   card: {
-    borderColor: "rgba(15, 118, 110, 0.22)",
+    borderColor: "rgba(15, 118, 110, 0.15)",
   },
   cardGlow: {
     position: "absolute",
-    right: -30,
-    top: -34,
-    width: 114,
-    height: 114,
-    borderRadius: 999,
-    backgroundColor: "rgba(15, 118, 110, 0.1)",
+    right: -40,
+    top: -40,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(15, 118, 110, 0.05)",
   },
 });
 
