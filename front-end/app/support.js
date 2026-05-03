@@ -98,15 +98,8 @@ export default function SupportScreen({ onBack }) {
           <SupportItem
             icon={Mail}
             title="Email Support"
-            description="Send us an email at support@zaproll.edu. We typically respond within 24 hours."
-            onPress={() => Linking.openURL('mailto:support@zaproll.edu')}
-          />
-
-          <SupportItem
-            icon={MessageSquare}
-            title="Live Chat"
-            description="Chat with our support agents for immediate assistance during school hours."
-            onPress={() => {}}
+            description="Send us an email at andresmcgradyameer@gmail.com. We typically respond within 24 hours."
+            onPress={() => Linking.openURL('https://mail.google.com/mail/?view=cm&fs=1&to=andresmcgradyameer@gmail.com').catch(() => alert('Could not open Gmail. Please email us directly at andresmcgradyameer@gmail.com'))}
           />
 
           <View className="mt-10 items-center">

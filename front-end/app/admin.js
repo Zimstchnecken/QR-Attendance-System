@@ -264,7 +264,7 @@ export default function AdminScreen({
 
     let cancelled = false;
 
-    (async () => {
+    const fetchLogs = async () => {
       try {
         const records = await fetchAttendanceRecords(selectedSession.id, session.accessToken);
         if (cancelled) return;
@@ -285,11 +285,19 @@ export default function AdminScreen({
       } catch {
         // Non-fatal — keep existing log
       }
-    })();
+    };
 
-    return () => { cancelled = true; };
+    fetchLogs();
+    
+    // Poll every 3 seconds for live updates
+    const intervalId = setInterval(fetchLogs, 3000);
+
+    return () => { 
+      cancelled = true; 
+      clearInterval(intervalId);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSession?.id, session?.accessToken]);
+  }, [selectedSession?.id, session?.accessToken, state.studentList]);
 
   // These must be declared before any early returns to satisfy Rules of Hooks
   const liveScanRows = useMemo(

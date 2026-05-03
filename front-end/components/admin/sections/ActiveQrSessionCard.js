@@ -303,12 +303,26 @@ export const ActiveQrSessionCard = ({
         <View className="mt-6 flex-row gap-3">
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => handleGenerateQr({ sessionId: selectedSession.id, sessionName: sessionName || selectedSession.className })}
-            className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-primary py-4 shadow-sm shadow-primary/20"
+            onPress={() => {
+              const isOpened = sessions?.some(s => s.id === selectedSession?.id);
+              if (!isOpened) {
+                setShowNewSessionForm(true);
+                // Optionally could use an alert, but toggling the form is a good nudge.
+                return;
+              }
+              handleGenerateQr({ sessionId: selectedSession.id, sessionName: sessionName || selectedSession.className });
+            }}
+            className={`flex-1 flex-row items-center justify-center gap-2 rounded-2xl py-4 shadow-sm ${
+              !sessions?.some(s => s.id === selectedSession?.id) 
+                ? "bg-primary/50" 
+                : "bg-primary shadow-primary/20"
+            }`}
           >
             <QrCode size={18} color="#FFFFFF" />
             <Text className="text-base font-bold text-white font-sans">
-              {activeQrSession ? "Rotate Key" : "Start Session"}
+              {activeQrSession 
+                ? "Rotate Key" 
+                : (!sessions?.some(s => s.id === selectedSession?.id) ? "Open Class First" : "Start Session")}
             </Text>
           </TouchableOpacity>
           

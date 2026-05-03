@@ -49,6 +49,13 @@ export async function logoutUser({ token, refreshToken }) {
   });
 }
 
+export async function sendPasswordResetEmail(email) {
+  return request("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+}
+
 export function getApiBaseUrl() {
   return API_BASE_URL;
 }
