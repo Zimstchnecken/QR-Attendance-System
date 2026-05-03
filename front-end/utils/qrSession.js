@@ -104,13 +104,9 @@ export const validateQrSessionPayload = ({ encodedPayload, schoolCode, activeQrS
     return { ok: false, reason: "QR is for a different school." };
   }
 
-  if (!activeQrSession) {
-    return { ok: false, reason: "No active QR session is available." };
-  }
-
-  if (activeQrSession.sessionId !== sessionId || activeQrSession.version !== version) {
-    return { ok: false, reason: "QR is no longer active." };
-  }
+  // We no longer require activeQrSession to be present locally on the student device.
+  // The QR signature, expiry, and schoolCode checks above are sufficient for the frontend,
+  // and the backend will perform the final validation of the sessionId/version.
 
   if (Date.now() > expiresAt) {
     return { ok: false, reason: "QR has expired. Ask teacher to rotate." };

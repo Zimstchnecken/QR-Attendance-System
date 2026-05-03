@@ -1,5 +1,6 @@
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
+import { z } from 'zod';
 
 import { env } from '../config/env.js';
 import { getDatabasePool } from '../db/pool.js';
@@ -331,6 +332,115 @@ catalogRouter.get('/sections/:sectionId/subjects', (req: Request, res: Response)
       error: {
         code: 'CATALOG_ERROR',
         message: error instanceof Error ? error.message : 'Catalog lookup failed',
+      },
+    });
+  });
+});
+
+// ── Bulk Import ─────────────────────────────────────────────────────────────
+const bulkStudentSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  studentNumber: z.string().optional(),
+  gradeLevel: z.string().min(1),
+  parentEmail: z.string().email().optional(),
+  sectionName: z.string().optional(),
+});
+
+const bulkImportSchema = z.object({
+  students: z.array(bulkStudentSchema),
+});
+
+catalogRouter.post('/students/bulk', (req: Request, res: Response) => {
+  (async () => {
+    const { students: importList } = bulkImportSchema.parse(req.body);
+    
+    if (!env.DATABASE_URL) {
+      return res.status(200).json({ 
+        success: true, 
+        data: { imported: importList.length, total: importList.length } 
+      });
+    }
+
+    const pool = getDatabasePool();
+    const resultSchools = await pool.query<{ id: string }>('select id from schools limit 1');
+    const schoolId = resultSchools.rows[0]?.id;
+
+    if (!schoolId) {
+      throw new Error('No school found to associate students with.');
+    }
+
+    let importedCount = 0;
+    
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      for (const std of importList) {
+        const studentResult = await client.query<{ id: string }>(
+          `insert into students (school_id, first_name, last_name, student_number, grade_level)
+           values ($1, $2, $3, $4, $5)
+           returning id`,
+          [schoolId, std.firstName, std.lastName, std.studentNumber || null, std.gradeLevel]
+        );
+        const studentId = studentResult.rows[0].id;
+
+        if (std.parentEmail) {
+          let parentResult = await client.query<{ id: string }>(
+            'select id from parents where email = $1',
+            [std.parentEmail.toLowerCase()]
+          );
+          
+          let parentId;
+          if (parentResult.rows.length === 0) {
+            parentResult = await client.query<{ id: string }>(
+              'insert into parents (first_name, last_name, email) values ($1, $2, $3) returning id',
+              ['Parent', std.lastName, std.parentEmail.toLowerCase()]
+            );
+          }
+          parentId = parentResult.rows[0].id;
+
+          await client.query(
+            'insert into parent_student_links (parent_id, student_id, relationship) values ($1, $2, $3)',
+            [parentId, studentId, 'Parent']
+          );
+        }
+
+        if (std.sectionName) {
+          const sectionResult = await client.query<{ id: string }>(
+            'select id from sections where school_id = $1 and name = $2',
+            [schoolId, std.sectionName]
+          );
+          
+          if (sectionResult.rows.length > 0) {
+            await client.query(
+              'insert into student_enrollments (student_id, section_id) values ($1, $2)',
+              [studentId, sectionResult.rows[0].id]
+            );
+          }
+        }
+        
+        importedCount++;
+      }
+      
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      data: { imported: importedCount, total: importList.length } 
+    });
+  })().catch((error: unknown) => {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'IMPORT_ERROR',
+        message: error instanceof Error ? error.message : 'Bulk import failed',
       },
     });
   });

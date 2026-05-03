@@ -133,12 +133,12 @@ export default function StudentScreen({
     Animated.timing(successAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
   };
 
-  const processScanPayload = (encodedPayload) => {
+  const processScanPayload = async (encodedPayload) => {
     if (!onScanQrPayload) {
       applyFeedback("error", "Scanner service unavailable.");
       return;
     }
-    const result = onScanQrPayload({ encodedPayload, studentId, studentName });
+    const result = await onScanQrPayload({ encodedPayload, studentId, studentName });
     if (result.ok) {
       applyFeedback("success", result.message);
       setTimeout(loadHistory, 1500);

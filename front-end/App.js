@@ -16,7 +16,7 @@ import {
   NotificationsScreen,
   SupportScreen,
 } from "./app/index";
-import { loginAdmin, loginStudent, logoutUser } from "./utils/api";
+import { loginAdmin, loginStudent, logoutUser, recordAttendance } from "./utils/api";
 import { createQrSessionPayload, validateQrSessionPayload } from "./utils/qrSession";
 
 export default function App() {
@@ -150,9 +150,10 @@ export default function App() {
     setConsumedNonces([]);
   };
 
-  const handleScanQrPayload = ({ encodedPayload, studentId, studentName }) => {
-    // Use the logged-in student's identity from session
-    const resolvedStudentId = studentId || session?.user?.studentId || "ST-078";
+  const handleScanQrPayload = async ({ encodedPayload, studentId, studentName }) => {
+    // session.user.studentUuid is the students.id UUID from the database,
+    // which is what attendance_records.student_id references.
+    const resolvedStudentId = session?.user?.studentUuid || session?.user?.id || studentId;
     const resolvedStudentName = studentName || session?.user?.name || "Student";
 
     const validation = validateQrSessionPayload({
@@ -170,24 +171,42 @@ export default function App() {
     }
 
     const { payload } = validation;
-    const event = {
-      id: `${Date.now()}`,
-      studentId: resolvedStudentId,
-      studentName: resolvedStudentName,
-      className: payload.sessionName,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      date: new Date().toLocaleDateString([], { month: "short", day: "2-digit" }),
-      source: "qr",
-    };
 
-    setConsumedNonces((prev) => [...prev, payload.nonce]);
-    setScanEvents((prev) => [event, ...prev]);
+    try {
+      // Record attendance in the backend database
+      if (session?.accessToken && payload.sessionId && resolvedStudentId) {
+        await recordAttendance(
+          payload.sessionId,
+          resolvedStudentId,
+          "present",
+          session.accessToken
+        );
+      }
 
-    return {
-      ok: true,
-      message: `${payload.sessionName} attendance confirmed.`,
-      event,
-    };
+      const event = {
+        id: `${Date.now()}`,
+        studentId: resolvedStudentId,
+        studentName: resolvedStudentName,
+        className: payload.sessionName,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        date: new Date().toLocaleDateString([], { month: "short", day: "2-digit" }),
+        source: "qr",
+      };
+
+      setConsumedNonces((prev) => [...prev, payload.nonce]);
+      setScanEvents((prev) => [event, ...prev]);
+
+      return {
+        ok: true,
+        message: `${payload.sessionName} attendance confirmed.`,
+        event,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error.message || "Failed to record attendance on server.",
+      };
+    }
   };
 
   const handleLogout = async () => {

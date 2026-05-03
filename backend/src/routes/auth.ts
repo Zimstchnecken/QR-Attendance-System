@@ -13,6 +13,7 @@ type AuthUser = {
   name: string;
   email?: string;
   studentId?: string;
+  studentUuid?: string;
 };
 
 type AuthSession = {
@@ -54,6 +55,7 @@ const devStudent = {
     role: 'student' as const,
     name: 'Katrina Santos',
     studentId: 'ST-078',
+    studentUuid: 'student-uuid-78',
   },
 };
 
@@ -146,12 +148,13 @@ async function authenticateStudent(studentId: string, pin: string) {
 
   const databasePool = getDatabasePool();
   const result = await databasePool.query<{
+    id: string;
     user_id: string | null;
     student_number: string;
     first_name: string;
     last_name: string;
   }>(
-    `select user_id, student_number, first_name, last_name
+    `select id, user_id, student_number, first_name, last_name
      from students
      where student_number = $1
        and status = 'active'
@@ -172,6 +175,7 @@ async function authenticateStudent(studentId: string, pin: string) {
       role: 'student' as const,
       name: `${row.first_name} ${row.last_name}`,
       studentId: row.student_number,
+      studentUuid: row.id,
     },
     subjectUserId: row.user_id,
   };
@@ -186,8 +190,9 @@ async function lookupRefreshSession(refreshToken: string) {
       full_name: string;
       email: string | null;
       student_number: string | null;
+      student_uuid: string | null;
     }>(
-      `select rt.user_id, u.role, u.full_name, u.email, s.student_number
+      `select rt.user_id, u.role, u.full_name, u.email, s.student_number, s.id as student_uuid
        from refresh_tokens rt
        join users u on u.id = rt.user_id
        left join students s on s.user_id = u.id
@@ -210,6 +215,7 @@ async function lookupRefreshSession(refreshToken: string) {
             role: 'student' as const,
             name: row.full_name,
             studentId: row.student_number ?? undefined,
+            studentUuid: row.student_uuid ?? undefined,
           }
         : {
             id: row.user_id,

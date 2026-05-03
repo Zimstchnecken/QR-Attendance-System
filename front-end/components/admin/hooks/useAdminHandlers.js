@@ -193,8 +193,8 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
     setStudentToRemove(null);
   };
 
-  const handleAddAttendanceStudent = (students) => {
-    if (!students) return;
+  const handleAddAttendanceStudent = async (students) => {
+    if (!students || !selectedSession?.id) return;
     const studentArray = Array.isArray(students) ? students : [students];
     
     if (studentArray.length === 0) return;
@@ -206,15 +206,27 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
       hour12: true,
     });
 
-    const newRecords = studentArray.map((student, index) => ({
-      id: `M-${Date.now()}-${index}`,
-      name: student.name,
-      className: targetClassName,
-      time: currentTime,
-    }));
+    try {
+      if (apiToken) {
+        for (const student of studentArray) {
+          // student.id is the students.id UUID from the API
+          await recordAttendance(selectedSession.id, student.id, "present", apiToken);
+        }
+      }
 
-    setAttendanceLog([...newRecords, ...attendanceLog]);
-    showSuccessWithAnimation(`${studentArray.length} student(s) added to attendance.`);
+      const newRecords = studentArray.map((student, index) => ({
+        id: `M-${Date.now()}-${index}`,
+        name: student.name,
+        className: targetClassName,
+        time: currentTime,
+      }));
+
+      setAttendanceLog((prev) => [...newRecords, ...prev]);
+      showSuccessWithAnimation(`${studentArray.length} student(s) synchronized with attendance.`);
+    } catch (err) {
+      setWarningMessage("Failed to sync manual attendance with the server.");
+      setShowWarning(true);
+    }
   };
 
   const handleSaveStudent = () => {

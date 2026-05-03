@@ -269,13 +269,17 @@ export default function AdminScreen({
         const records = await fetchAttendanceRecords(selectedSession.id, session.accessToken);
         if (cancelled) return;
 
-        const mapped = (records || []).map((r) => ({
-          id: r.recordId ?? `${r.studentId}-${r.recordedAt}`,
-          name: r.studentId, // will be enriched by studentList lookup if needed
-          className: selectedSession.className,
-          time: new Date(r.recordedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }),
-          status: r.status,
-        }));
+        const mapped = (records || []).map((r) => {
+          // Look up student name in the registry if available
+          const studentInfo = state.studentList.find(s => s.id === r.studentId || s.studentId === r.studentId);
+          return {
+            id: r.recordId ?? `${r.studentId}-${r.recordedAt}`,
+            name: studentInfo ? studentInfo.name : r.studentId,
+            className: selectedSession.className,
+            time: new Date(r.recordedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }),
+            status: r.status,
+          };
+        });
 
         state.setAttendanceLog(mapped);
       } catch {
