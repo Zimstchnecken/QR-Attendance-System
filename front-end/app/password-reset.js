@@ -1,9 +1,8 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, KeyRound, Mail, Send } from "lucide-react-native";
 import { GlassCard, ScreenBackground } from "../components";
 import { theme } from "../constants/theme";

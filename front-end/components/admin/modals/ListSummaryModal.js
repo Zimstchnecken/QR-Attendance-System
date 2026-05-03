@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { ClipboardList } from "lucide-react-native";
 import { theme } from "../../../constants/theme";
 
-export const ListSummaryModal = ({ visible, attendanceLog, sessionName, onClose }) => {
+export const ListSummaryModal = ({ visible, attendanceLog, sessionName, onClose, onExport }) => {
   if (!visible) return null;
 
   return (
@@ -44,9 +44,18 @@ export const ListSummaryModal = ({ visible, attendanceLog, sessionName, onClose 
             Total: {attendanceLog.length} students present
           </Text>
         </View>
-        <TouchableOpacity activeOpacity={0.9} onPress={onClose} className="rounded-2xl bg-primary px-4 py-3">
-          <Text className="text-center text-base font-semibold text-white font-sans">Close</Text>
-        </TouchableOpacity>
+        <View className="flex-row gap-3">
+          <TouchableOpacity activeOpacity={0.9} onPress={onClose} className="flex-1 rounded-2xl border border-border px-4 py-3">
+            <Text className="text-center text-base font-semibold text-textPrimary font-sans">Close</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            activeOpacity={0.9} 
+            onPress={onExport} 
+            className="flex-1 rounded-2xl bg-primary px-4 py-3"
+          >
+            <Text className="text-center text-base font-semibold text-white font-sans">Export PDF</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

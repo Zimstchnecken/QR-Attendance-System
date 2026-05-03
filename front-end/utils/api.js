@@ -75,6 +75,15 @@ export async function fetchSectionSubjects(sectionId, token) {
   return payload.data ?? [];
 }
 
+export async function bulkImportStudents(students, token) {
+  const payload = await request("/api/v1/students/bulk", {
+    method: "POST",
+    body: { students },
+    token,
+  });
+  return payload.data;
+}
+
 // ── QR Sessions ───────────────────────────────────────────────────────────────
 
 export async function openClassSession(sectionSubjectId, sessionDate, token) {

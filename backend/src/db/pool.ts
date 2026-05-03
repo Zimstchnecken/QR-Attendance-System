@@ -12,6 +12,9 @@ export function getDatabasePool() {
   if (!pool) {
     pool = new Pool({
       connectionString: env.DATABASE_URL,
+      ssl: env.DATABASE_URL.includes('localhost') || env.DATABASE_URL.includes('127.0.0.1')
+        ? false
+        : { rejectUnauthorized: false },
     });
   }
 

@@ -1,13 +1,13 @@
 import { useRef, useState } from "react";
 import {
   Animated,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BellRing, ChartNoAxesCombined, QrCode, ShieldCheck } from "lucide-react-native";
 import { ScreenBackground } from "../components";
 import { theme } from "../constants/theme";
