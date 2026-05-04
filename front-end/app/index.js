@@ -5,3 +5,7 @@ export { default as AdminLoginScreen } from "./login";
 export { default as StudentLoginScreen } from "./student-login";
 export { default as StudentScreen } from "./student";
 export { default as AdminScreen } from "./admin";
+export { default as SectionRegistryScreen } from "./section-registry";
+export { default as SettingsScreen } from "./settings";
+export { default as NotificationsScreen } from "./notifications";
+export { default as SupportScreen } from "./support";

@@ -49,6 +49,13 @@ export async function logoutUser({ token, refreshToken }) {
   });
 }
 
+export async function sendPasswordResetEmail(email) {
+  return request("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+}
+
 export function getApiBaseUrl() {
   return API_BASE_URL;
 }
@@ -73,6 +80,15 @@ export async function fetchClassSessions(token) {
 export async function fetchSectionSubjects(sectionId, token) {
   const payload = await request(`/api/v1/sections/${encodeURIComponent(sectionId)}/subjects`, { token });
   return payload.data ?? [];
+}
+
+export async function bulkImportStudents(students, token) {
+  const payload = await request("/api/v1/students/bulk", {
+    method: "POST",
+    body: { students },
+    token,
+  });
+  return payload.data;
 }
 
 // ── QR Sessions ───────────────────────────────────────────────────────────────

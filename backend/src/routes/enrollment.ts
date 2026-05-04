@@ -36,31 +36,16 @@ enrollmentRouter.get('/available', (req: Request, res: Response) => {
 
     const pool = getDatabasePool();
     
-    // Get section info first
-    const sectionResult = await pool.query<{ grade_level: string }>(
-      'select grade_level from sections where id = $1',
-      [query.sectionId]
-    );
-
-    if (sectionResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: { code: 'NOT_FOUND', message: 'Section not found' },
-      });
-    }
-
-    const gradeLevel = sectionResult.rows[0].grade_level;
-
-    // Get students not already enrolled in this section
+    // Get available students (not already enrolled in this section)
     const result = await pool.query<{ id: string; first_name: string; last_name: string; student_number: string; grade_level: string }>(
       `select s.id, s.first_name, s.last_name, s.student_number, s.grade_level
        from students s
-       where s.grade_level = $1 and s.status = 'active'
+       where s.status = 'active'
        and s.id not in (
-         select student_id from student_enrollments where section_id = $2
+         select student_id from student_enrollments where section_id = $1
        )
        order by s.first_name asc`,
-      [gradeLevel, query.sectionId]
+      [query.sectionId]
     );
 
     res.status(200).json({

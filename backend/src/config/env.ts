@@ -10,6 +10,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
+  EXPO_PUBLIC_API_BASE_URL: z.string().url().optional(),
 });
 
 export const env = envSchema.parse(process.env);

@@ -2,15 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Camera, CircleCheck, Clock3, House, LogOut, QrCode, ShieldAlert } from "lucide-react-native";
+import { Bell, Camera, CircleCheck, Clock3, House, LogOut, QrCode, Settings, ShieldAlert } from "lucide-react-native";
 import { GlassCard, ScreenBackground } from "../components";
 import { DashboardTabBar } from "../components/admin/sections";
 import { fetchStudentAttendanceHistory } from "../utils/api";
@@ -74,6 +74,8 @@ export default function StudentScreen({
   onScanQrPayload,
   onLogout,
   session,
+  onNavigateToSettings,
+  onNavigateToNotifications,
 }) {
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
@@ -131,12 +133,12 @@ export default function StudentScreen({
     Animated.timing(successAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
   };
 
-  const processScanPayload = (encodedPayload) => {
+  const processScanPayload = async (encodedPayload) => {
     if (!onScanQrPayload) {
       applyFeedback("error", "Scanner service unavailable.");
       return;
     }
-    const result = onScanQrPayload({ encodedPayload, studentId, studentName });
+    const result = await onScanQrPayload({ encodedPayload, studentId, studentName });
     if (result.ok) {
       applyFeedback("success", result.message);
       setTimeout(loadHistory, 1500);
@@ -440,43 +442,65 @@ export default function StudentScreen({
         <View className="mb-6 overflow-hidden rounded-3xl border border-border bg-card" style={styles.bannerCard}>
           <View style={styles.bannerGlowTop} />
           <View style={styles.bannerGlowBottom} />
-          <View className="px-5 pb-5 pt-6" style={isCompact ? styles.bannerPaddingCompact : null}>
-            <View className="mb-4 self-start rounded-full border border-white/25 bg-white/20 px-3 py-1">
-              <Text className="text-xs font-semibold uppercase tracking-widest text-white font-sans">ZapRoll Student</Text>
-            </View>
-            <View className="mb-4 flex-row flex-wrap items-start justify-between gap-3" style={isCompact ? styles.compactHeaderRow : null}>
-              <View className="flex-1 pr-2" style={isCompact ? styles.compactTitleBlock : null}>
-                <Text className="text-3xl font-bold text-white font-sans" style={isCompact ? styles.compactTitleText : null}>
-                  {studentName}
-                </Text>
-                <Text className="mt-2 text-sm text-white/90 font-sans">
-                  Scan, confirm, and review your ZapRoll attendance in one place.
+          <View className="px-5 pb-5 pt-5" style={isCompact ? styles.bannerPaddingCompact : null}>
+            {/* Top Bar Utilities */}
+            <View className="mb-5 flex-row items-center justify-between">
+              <View className="rounded-full border border-white/25 bg-white/20 px-3 py-1">
+                <Text className="text-[10px] font-bold uppercase tracking-widest text-white font-sans">
+                  Student Portal
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={onLogout}
-                activeOpacity={0.9}
-                className="self-start rounded-2xl border border-white/25 bg-white/20 px-4 py-4"
-                style={[styles.actionButton, isCompact ? styles.compactLogoutButton : null]}
-              >
-                <View className="flex-row items-center gap-2">
-                  <LogOut size={18} color="#FFFFFF" />
-                  <Text className="text-xs font-semibold text-white font-sans">Log out</Text>
-                </View>
-              </TouchableOpacity>
+              
+              <View className="flex-row items-center gap-2">
+                <TouchableOpacity
+                  onPress={onNavigateToNotifications}
+                  activeOpacity={0.8}
+                  className="h-10 w-10 items-center justify-center rounded-xl border border-white/25 bg-white/20"
+                >
+                  <Bell size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={onNavigateToSettings}
+                  activeOpacity={0.8}
+                  className="h-10 w-10 items-center justify-center rounded-xl border border-white/25 bg-white/20"
+                >
+                  <Settings size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={onLogout}
+                  activeOpacity={0.8}
+                  className="h-10 items-center justify-center rounded-xl border border-white/25 bg-white/20 px-3"
+                >
+                  <LogOut size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <View className="flex-row flex-wrap gap-2" style={isCompact ? styles.compactChipWrap : null}>
-              <View className="flex-row items-center gap-2 rounded-full bg-white/20 px-3 py-2">
-                <Camera size={15} color="#FFFFFF" />
-                <Text className="text-xs font-semibold text-white font-sans">Camera ready</Text>
+
+            {/* User Hero Section */}
+            <View className="mb-6">
+              <Text className="text-3xl font-bold text-white font-sans" style={isCompact ? styles.compactTitleText : null}>
+                {studentName}
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-white/80 font-sans" style={isCompact ? { fontSize: 13 } : null}>
+                Scan QR and track your attendance status in real time.
+              </Text>
+            </View>
+
+            {/* Quick Status Chips */}
+            <View className="flex-row flex-wrap gap-2">
+              <View className="flex-row items-center gap-2 rounded-xl bg-white/10 px-3 py-2 border border-white/10">
+                <Camera size={14} color="#FFFFFF" />
+                <Text className="text-[11px] font-semibold text-white font-sans">Scanner Ready</Text>
               </View>
-              <View className="flex-row items-center gap-2 rounded-full bg-white/20 px-3 py-2">
-                <QrCode size={15} color="#FFFFFF" />
-                <Text className="text-xs font-semibold text-white font-sans">Live QR scanning</Text>
+              <View className="flex-row items-center gap-2 rounded-xl bg-white/10 px-3 py-2 border border-white/10">
+                <QrCode size={14} color="#FFFFFF" />
+                <Text className="text-[11px] font-semibold text-white font-sans">Check-in</Text>
               </View>
-              <View className="flex-row items-center gap-2 rounded-full bg-white/20 px-3 py-2">
-                <Clock3 size={15} color="#FFFFFF" />
-                <Text className="text-xs font-semibold text-white font-sans">History available</Text>
+              <View className="flex-row items-center gap-2 rounded-xl bg-white/10 px-3 py-2 border border-white/10">
+                <Clock3 size={14} color="#FFFFFF" />
+                <Text className="text-[11px] font-semibold text-white font-sans">History</Text>
               </View>
             </View>
           </View>
