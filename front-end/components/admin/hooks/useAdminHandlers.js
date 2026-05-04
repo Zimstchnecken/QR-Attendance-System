@@ -71,6 +71,10 @@ export const useAdminHandlers = (state, liveQrActions = {}, apiToken, teacherNam
   };
 
   const handleSelectSession = (session) => {
+    // Invalidate any existing QR when switching sessions
+    if (onInvalidateLiveQr) {
+      onInvalidateLiveQr();
+    }
     setSelectedSession(session);
     setSessionName(session.className);
   };

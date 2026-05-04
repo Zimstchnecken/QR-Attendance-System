@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 
 import type { Request, Response, Router } from 'express';
 import { Router as createRouter } from 'express';
+import { Resend } from 'resend';
 import { z } from 'zod';
 
 import { env } from '../config/env.js';
@@ -34,6 +35,10 @@ const studentLoginSchema = z.object({
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(1),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().min(1),
 });
 
 const devAdmin = {
@@ -314,6 +319,57 @@ authRouter.post('/logout', (req: Request, res: Response) => {
     });
   })().catch((error: unknown) => {
     return sendAuthError(res, 500, 'AUTH_SERVICE_ERROR', error instanceof Error ? error.message : 'Logout failed.');
+  });
+});
+
+authRouter.post('/forgot-password', (req: Request, res: Response) => {
+  (async () => {
+    const parsed = forgotPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return sendAuthError(res, 400, 'INVALID_REQUEST', 'Please provide a valid email or student ID.');
+    }
+
+    const { email } = parsed.data;
+    
+    // As per user request, we send all reset emails to andresmcgradyameer@gmail.com
+    // In production, this would be the actual resolved user email.
+    const targetEmail = 'andresmcgradyameer@gmail.com';
+    const resetToken = randomUUID();
+    const resetLink = `http://localhost:8081/reset-password?token=${resetToken}`;
+
+    if (env.RESEND_API_KEY) {
+      const resend = new Resend(env.RESEND_API_KEY);
+      
+      const { error } = await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: targetEmail,
+        subject: 'QR Attendance System - Password Reset',
+        html: `
+          <div style="font-family: sans-serif; padding: 20px;">
+            <h2>Password Reset Request</h2>
+            <p>We received a request to reset the password for the account associated with: <strong>${email}</strong>.</p>
+            <p>Click the link below to securely reset your password:</p>
+            <p><a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #0f766e; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error('Failed to send reset email via Resend:', error);
+        return sendAuthError(res, 500, 'EMAIL_SEND_FAILED', 'Could not send reset email.');
+      }
+    } else {
+      console.warn('RESEND_API_KEY is missing. Mocking email delivery.');
+      console.log(`[MOCK EMAIL] To: ${targetEmail} | Link: ${resetLink}`);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Reset instructions sent successfully.',
+    });
+  })().catch((error: unknown) => {
+    return sendAuthError(res, 500, 'AUTH_SERVICE_ERROR', error instanceof Error ? error.message : 'Forgot password request failed.');
   });
 });
 

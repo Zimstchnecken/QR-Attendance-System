@@ -14,18 +14,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, KeyRound, Mail, Send } from "lucide-react-native";
 import { GlassCard, ScreenBackground } from "../components";
 import { theme } from "../constants/theme";
+import { sendPasswordResetEmail } from "../utils/api";
 
 export default function PasswordResetScreen({ onBack, onDone }) {
   const [identifier, setIdentifier] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [wasSent, setWasSent] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMsg("");
+    try {
+      await sendPasswordResetEmail(identifier);
       setWasSent(true);
-    }, 700);
+    } catch (error) {
+      setErrorMsg(error.message || "Failed to send reset email.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,6 +95,14 @@ export default function PasswordResetScreen({ onBack, onDone }) {
               <View className="mt-4 rounded-2xl border border-success/20 bg-success/10 p-4">
                 <Text className="text-sm font-semibold text-success font-sans">
                   Reset instructions sent. Check your messages and follow the secure link.
+                </Text>
+              </View>
+            )}
+
+            {!!errorMsg && !wasSent && (
+              <View className="mt-4 rounded-2xl border border-danger/20 bg-danger/10 p-4">
+                <Text className="text-sm font-semibold text-danger font-sans">
+                  {errorMsg}
                 </Text>
               </View>
             )}

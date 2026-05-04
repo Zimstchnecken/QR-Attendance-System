@@ -44,8 +44,8 @@ qrSessionRouter.post('/open', (req: Request, res: Response) => {
 
     const pool = getDatabasePool();
     const result = await pool.query<{ id: string; status: string; opened_at: string }>(
-      `insert into class_sessions (section_subject_id, session_date, status, opened_at)
-       values ($1, $2, 'open', now())
+      `insert into class_sessions (section_subject_id, session_date, status, opened_at, starts_at)
+       values ($1, $2, 'open', now(), now())
        returning id, status, opened_at`,
       [body.sectionSubjectId, body.sessionDate]
     );
@@ -200,10 +200,10 @@ qrSessionRouter.post('/:sessionId/attendance', (req: Request, res: Response) => 
     }
 
     const pool = getDatabasePool();
-    const result = await pool.query<{ id: string; student_id: string; status: string; created_at: string }>(
-      `insert into attendance_records (class_session_id, student_id, status, created_at)
+    const result = await pool.query<{ id: string; student_id: string; status: string; scanned_at: string }>(
+      `insert into attendance_records (class_session_id, student_id, status, scanned_at)
        values ($1, $2, $3, now())
-       returning id, student_id, status, created_at`,
+       returning id, student_id, status, scanned_at`,
       [sessionId, body.studentId, body.status]
     );
 
@@ -215,7 +215,7 @@ qrSessionRouter.post('/:sessionId/attendance', (req: Request, res: Response) => 
         sessionId,
         studentId: record.student_id,
         status: record.status,
-        recordedAt: record.created_at,
+        recordedAt: record.scanned_at,
       },
     });
   })().catch((error: unknown) => {
